@@ -1,40 +1,74 @@
 {
     "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-    "release-type": "simple",
-    "include-v-in-tag": true,
     "bump-minor-pre-major": true,
     "bump-patch-for-minor-pre-major": true,
+    "separate-pull-requests": false,
+    "group-pull-request-title-pattern": "chore: release ${component}",
     "changelog-sections": [
-        {
-            "type": "feat",
-            "section": "Features"
-        },
-        {
-            "type": "fix",
-            "section": "Bug Fixes"
-        },
-        {
-            "type": "perf",
-            "section": "Performance Improvements"
-        },
-        {
-            "type": "refactor",
-            "section": "Code Refactoring"
-        },
-        {
-            "type": "docs",
-            "section": "Documentation"
-        },
-        {
-            "type": "chore",
-            "section": "Miscellaneous",
-            "hidden": true
-        }
+        {"type": "feat", "section": "Features"},
+        {"type": "fix", "section": "Bug Fixes"},
+        {"type": "perf", "section": "Performance Improvements"},
+        {"type": "refactor", "section": "Code Refactoring"},
+        {"type": "docs", "section": "Documentation"},
+        {"type": "chore", "section": "Miscellaneous", "hidden": true}
     ],
     "packages": {
-        ".": {
-            "package-name": "claude-code-plugins",
-            "changelog-path": "CHANGELOG.md"
+        "plugins/using-jules": {
+            "package-name": "using-jules",
+            "release-type": "simple",
+            "component": "using-jules",
+            "changelog-path": "CHANGELOG.md",
+            "include-component-in-tag": true,
+            "extra-files": [
+                {
+                    "type": "json",
+                    "path": ".claude-plugin/plugin.json",
+                    "jsonpath": "$.version"
+                },
+                {
+                    "type": "json",
+                    "path": "../../.claude-plugin/marketplace.json",
+                    "jsonpath": "$.plugins[0].version"
+                }
+            ]
+        },
+        "plugins/moon": {
+            "package-name": "moon",
+            "release-type": "simple",
+            "component": "moon",
+            "changelog-path": "CHANGELOG.md",
+            "include-component-in-tag": true,
+            "extra-files": [
+                {
+                    "type": "json",
+                    "path": ".claude-plugin/plugin.json",
+                    "jsonpath": "$.version"
+                },
+                {
+                    "type": "json",
+                    "path": "../../.claude-plugin/marketplace.json",
+                    "jsonpath": "$.plugins[1].version"
+                }
+            ]
+        },
+        "plugins/svelte": {
+            "package-name": "svelte",
+            "release-type": "simple",
+            "component": "svelte",
+            "changelog-path": "CHANGELOG.md",
+            "include-component-in-tag": true,
+            "extra-files": [
+                {
+                    "type": "json",
+                    "path": ".claude-plugin/plugin.json",
+                    "jsonpath": "$.version"
+                },
+                {
+                    "type": "json",
+                    "path": "../../.claude-plugin/marketplace.json",
+                    "jsonpath": "$.plugins[2].version"
+                }
+            ]
         }
     }
 }

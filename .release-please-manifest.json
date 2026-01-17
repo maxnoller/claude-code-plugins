@@ -1,3 +1,5 @@
 {
-    ".": "0.1.3"
+    "plugins/using-jules": "1.0.1",
+    "plugins/moon": "0.2.1",
+    "plugins/svelte": "0.2.0"
 }
