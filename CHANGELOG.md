@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.2](https://github.com/maxnoller/claude-code-plugins/compare/claude-code-plugins-v0.1.1...claude-code-plugins-v0.1.2) (2026-01-17)
+
+
+### Features
+
+* **using-jules:** add explicit user-invocable field ([2cf9a7c](https://github.com/maxnoller/claude-code-plugins/commit/2cf9a7c479ae282b9525d98bac128771888d2193))
+
+
+### Code Refactoring
+
+* **using-jules:** improve skill based on skill-creator review ([460f753](https://github.com/maxnoller/claude-code-plugins/commit/460f753a08b3fe7aec584697401cb8169e7b0c5f))
+
 ## [0.1.1](https://github.com/maxnoller/claude-code-plugins/compare/claude-code-plugins-v0.1.0...claude-code-plugins-v0.1.1) (2026-01-17)
 
 
