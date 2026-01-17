@@ -1,6 +1,7 @@
 ---
 name: using-jules
 description: Guide for using Google Jules, the asynchronous AI coding agent. Use when delegating tasks to Jules, writing Jules prompts, using the `jules` CLI, or when the user mentions "jules", "send to jules", or wants to offload coding work to run in the background. Ideal for well-defined tasks that can run independently (bug fixes, tests, refactoring, docs) or parallelizing work.
+user-invocable: true
 ---
 
 Jules is Google's asynchronous coding agent that clones your repo into a secure VM, executes tasks, and returns diffs or PRs. It works in the background while you continue other work.
