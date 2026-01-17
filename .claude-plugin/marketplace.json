@@ -1,0 +1,21 @@
+{
+  "name": "maxnoller-plugins",
+  "owner": {
+    "name": "Max Noller",
+    "email": "maxnoller@users.noreply.github.com"
+  },
+  "metadata": {
+    "description": "Personal collection of Claude Code plugins",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "using-jules",
+      "description": "Guide for using Google Jules, the asynchronous AI coding agent",
+      "version": "1.0.0",
+      "source": "./plugins/using-jules",
+      "category": "productivity",
+      "tags": ["jules", "google", "async", "coding-agent"]
+    }
+  ]
+}
