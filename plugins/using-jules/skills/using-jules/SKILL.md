@@ -87,11 +87,13 @@ gemini -p "find the most tedious issue:\n$(gh issue list --assignee @me)" | jule
 
 ## AGENTS.md Integration
 
-Jules reads `AGENTS.md` from the repo root for context. If the project has one, keep it updated with:
-- Build/test commands
-- Architecture overview
-- Coding conventions
-- Validation steps before committing
+Jules reads `AGENTS.md` from the repo root for context. Use `/add-agents-md` to generate one.
+
+Keep it updated with:
+- Build/test commands (exact, copy-pasteable)
+- Architecture overview (one paragraph)
+- Coding conventions and lint rules
+- Important constraints (what NOT to do)
 
 ## Session Workflow
 
