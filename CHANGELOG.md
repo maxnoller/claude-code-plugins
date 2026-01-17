@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/maxnoller/claude-code-plugins/compare/claude-code-plugins-v0.1.2...claude-code-plugins-v0.1.3) (2026-01-17)
+
+
+### Features
+
+* **using-jules:** add /add-agents-md command ([57f6968](https://github.com/maxnoller/claude-code-plugins/commit/57f6968ea8326409c1a376ffa0fc7376dbaa1db4))
+
 ## [0.1.2](https://github.com/maxnoller/claude-code-plugins/compare/claude-code-plugins-v0.1.1...claude-code-plugins-v0.1.2) (2026-01-17)
 
 
