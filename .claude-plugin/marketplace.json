@@ -15,26 +15,26 @@
       "source": "./plugins/jules",
       "category": "productivity",
       "tags": ["jules", "google", "async", "coding-agent"],
-      "skills": ["./plugins/jules/skills/jules"]
+      "skills": ["./skills/jules"]
     },
     {
       "name": "moon",
       "description": "Comprehensive moonrepo/moon knowledge for monorepo management, task running, and CI/CD integration",
       "source": "./plugins/moon",
-      "skills": ["./plugins/moon/skills/moon-knowledge"]
+      "skills": ["./skills/moon-knowledge"]
     },
     {
       "name": "svelte",
       "description": "Modern Svelte 5 and SvelteKit development assistant with runes patterns, remote functions, testing, performance optimization, proactive code review, and LSP support.",
       "source": "./plugins/svelte",
       "skills": [
-        "./plugins/svelte/skills/svelte-a11y",
-        "./plugins/svelte/skills/svelte-components",
-        "./plugins/svelte/skills/svelte-performance",
-        "./plugins/svelte/skills/svelte-runes",
-        "./plugins/svelte/skills/svelte-testing",
-        "./plugins/svelte/skills/sveltekit-remote-functions",
-        "./plugins/svelte/skills/sveltekit-server"
+        "./skills/svelte-a11y",
+        "./skills/svelte-components",
+        "./skills/svelte-performance",
+        "./skills/svelte-runes",
+        "./skills/svelte-testing",
+        "./skills/sveltekit-remote-functions",
+        "./skills/sveltekit-server"
       ]
     }
   ]
