@@ -1,23 +1,9 @@
 ---
 name: using-jules
-description: Guide for using Google Jules, the asynchronous AI coding agent. Use when delegating tasks to Jules, writing Jules prompts, using the `jules` CLI, or when the user mentions "jules", "send to jules", or wants to offload coding work to run in the background.
+description: Guide for using Google Jules, the asynchronous AI coding agent. Use when delegating tasks to Jules, writing Jules prompts, using the `jules` CLI, or when the user mentions "jules", "send to jules", or wants to offload coding work to run in the background. Ideal for well-defined tasks that can run independently (bug fixes, tests, refactoring, docs) or parallelizing work.
 ---
 
-# Using Jules
-
 Jules is Google's asynchronous coding agent that clones your repo into a secure VM, executes tasks, and returns diffs or PRs. It works in the background while you continue other work.
-
-## When to Use Jules
-
-Delegate to Jules when:
-- Task is well-defined and can run independently (bug fixes, tests, refactoring)
-- You want to parallelize work across multiple tasks
-- Task doesn't require real-time iteration or immediate feedback
-
-Keep in Claude Code when:
-- Task requires interactive debugging or exploration
-- You need immediate results
-- Task involves complex architectural decisions needing discussion
 
 ## CLI Quick Reference
 
@@ -100,7 +86,7 @@ gemini -p "find the most tedious issue:\n$(gh issue list --assignee @me)" | jule
 
 ## AGENTS.md Integration
 
-Jules reads `AGENTS.md` from repo root. This project has one at `AGENTS.md`. Keep it updated with:
+Jules reads `AGENTS.md` from the repo root for context. If the project has one, keep it updated with:
 - Build/test commands
 - Architecture overview
 - Coding conventions
