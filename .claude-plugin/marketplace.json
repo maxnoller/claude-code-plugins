@@ -10,9 +10,9 @@
   },
   "plugins": [
     {
-      "name": "using-jules",
+      "name": "jules",
       "description": "Guide for using Google Jules, the asynchronous AI coding agent",
-      "source": "./plugins/using-jules",
+      "source": "./plugins/jules",
       "category": "productivity",
       "tags": ["jules", "google", "async", "coding-agent"]
     },
