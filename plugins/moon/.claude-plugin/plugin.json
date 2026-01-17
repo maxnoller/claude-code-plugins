@@ -1,0 +1,16 @@
+{
+  "name": "moon",
+  "version": "0.2.1",
+  "description": "Comprehensive moonrepo/moon knowledge for monorepo management, task running, and CI/CD integration",
+  "author": {
+    "name": "Internal"
+  },
+  "keywords": [
+    "moonrepo",
+    "moon",
+    "monorepo",
+    "task-runner",
+    "proto",
+    "ci-cd"
+  ]
+}

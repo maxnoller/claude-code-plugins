@@ -1,0 +1,32 @@
+# Project configuration for an API package
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# Project metadata
+project:
+  name: 'api'
+  description: 'Backend API service'
+  owner: '@backend-team'
+  maintainers:
+    - '@lead-developer'
+  channel: '#api-team'
+
+# Layer classification (renamed from 'type' in v1.39)
+# Supports: application, automation, configuration, library, scaffolding, tool, unknown
+layer: 'application'
+
+# Language (typescript, javascript, rust, python, etc.)
+language: 'typescript'
+
+# Stack classification (backend, frontend, infrastructure, etc.)
+stack: 'backend'
+
+# Dependency configuration
+dependsOn:
+  - 'shared-utils'
+  - 'database-client'
+
+# Tags for filtering (moon run :build --query "tag=critical")
+tags:
+  - 'api'
+  - 'backend'
+  - 'critical'

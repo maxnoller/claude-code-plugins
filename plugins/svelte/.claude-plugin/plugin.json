@@ -1,0 +1,27 @@
+{
+  "name": "svelte",
+  "version": "0.2.0",
+  "description": "Modern Svelte 5 and SvelteKit development assistant with runes patterns, remote functions, testing, performance optimization, proactive code review, and LSP support.",
+  "author": {
+    "name": "max"
+  },
+  "keywords": [
+    "svelte",
+    "svelte5",
+    "sveltekit",
+    "runes",
+    "remote-functions",
+    "testing",
+    "performance",
+    "lsp"
+  ],
+  "lspServers": {
+    "svelte": {
+      "command": "svelteserver",
+      "args": ["--stdio"],
+      "extensionToLanguage": {
+        ".svelte": "svelte"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$CLAUDE_FILE_PATHS\" in *moon.yml|*workspace.yml|*toolchain.yml|*tasks.yml|*.prototools) moon --version >/dev/null 2>&1 && moon check --workspace-root || echo 'moon not installed, skipping validation' ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}

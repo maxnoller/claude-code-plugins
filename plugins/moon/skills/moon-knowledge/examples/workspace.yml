@@ -1,0 +1,27 @@
+# Basic monorepo configuration
+$schema: 'https://moonrepo.dev/schemas/workspace.json'
+
+# Version control settings
+vcs:
+  manager: 'git'
+  defaultBranch: 'main'
+  syncHooks: true
+  provider: 'github'
+
+# Project discovery - glob patterns
+projects:
+  - 'apps/*'
+  - 'packages/*'
+
+# Generator templates
+generator:
+  templates:
+    - './templates'
+
+# Codeowners generation
+codeowners:
+  syncOnRun: true
+
+# Hasher configuration for cache optimization
+hasher:
+  optimization: 'performance'

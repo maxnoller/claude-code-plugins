@@ -1,0 +1,54 @@
+# Task definitions for a typical TypeScript project
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Common build task
+tasks:
+  # Common build task
+  build:
+    command: 'tsc --build'
+    inputs:
+      - 'src/**/*'
+      - 'tsconfig.json'
+    outputs:
+      - 'dist'
+    deps:
+      - '^:build'  # Build dependencies first
+
+  # Development server
+  dev:
+    command: 'tsx watch src/index.ts'
+    local: true
+    persistent: true
+
+  # Type checking
+  typecheck:
+    command: 'tsc --noEmit'
+    inputs:
+      - 'src/**/*'
+      - 'tsconfig.json'
+
+  # Linting with ESLint
+  lint:
+    command: 'eslint src --ext .ts,.tsx'
+    inputs:
+      - 'src/**/*'
+      - 'eslintrc.*'
+      - '/.eslintrc.*'
+
+  # Testing with different configurations
+  test:
+    command: 'vitest run'
+    inputs:
+      - 'src/**/*'
+      - 'tests/**/*'
+      - 'vitest.config.ts'
+    deps:
+      - 'typecheck'
+
+  # CI task combining all checks
+  ci:
+    deps:
+      - 'typecheck'
+      - 'lint'
+      - 'test'
+      - 'build'
