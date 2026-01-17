@@ -1,6 +1,5 @@
 {
   "name": "moon",
-  "version": "0.2.2",
   "description": "Comprehensive moonrepo/moon knowledge for monorepo management, task running, and CI/CD integration",
   "author": {
     "name": "Internal"

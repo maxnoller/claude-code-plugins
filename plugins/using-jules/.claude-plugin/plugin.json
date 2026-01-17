@@ -1,6 +1,5 @@
 {
   "name": "using-jules",
-  "version": "1.1.0",
   "description": "Guide for using Google Jules, the asynchronous AI coding agent. Helps with writing effective prompts, using the jules CLI, and delegating async coding tasks.",
   "author": {
     "name": "Max Noller",
