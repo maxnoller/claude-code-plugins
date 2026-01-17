@@ -7,13 +7,13 @@ Personal collection of Claude Code plugins.
 Add this marketplace:
 
 ```bash
-claude plugin marketplace add github:maxnoller/claude-code-plugins
+/plugin marketplace add github:maxnoller/claude-code-plugins
 ```
 
-Then install plugins:
+Then install the plugin:
 
 ```bash
-claude plugin add using-jules
+/plugin install using-jules
 ```
 
 ## Plugins

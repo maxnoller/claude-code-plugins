@@ -1,5 +1,5 @@
 {
-  "name": "maxnoller-plugins",
+  "name": "brainless-institute-plugins",
   "owner": {
     "name": "Max Noller",
     "email": "maxnoller@users.noreply.github.com"
@@ -11,11 +11,24 @@
   "plugins": [
     {
       "name": "using-jules",
-      "description": "Guide for using Google Jules, the asynchronous AI coding agent",
-      "version": "1.0.0",
-      "source": "./plugins/using-jules",
-      "category": "productivity",
-      "tags": ["jules", "google", "async", "coding-agent"]
+      "description": "Guide for using Google Jules, the asynchronous AI coding agent. Helps with writing effective prompts, using the jules CLI, and delegating async coding tasks.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/using-jules"
+      ]
+    },
+    {
+      "name": "moon",
+      "description": "Comprehensive moonrepo/moon knowledge for monorepo management, task running, and CI/CD integration",
+      "version": "0.2.1",
+      "source": "./plugins/moon"
+    },
+    {
+      "name": "svelte",
+      "description": "Modern Svelte 5 and SvelteKit development assistant with runes patterns, remote functions, testing, performance optimization, proactive code review, and LSP support.",
+      "version": "0.2.0",
+      "source": "./plugins/svelte"
     }
   ]
 }
