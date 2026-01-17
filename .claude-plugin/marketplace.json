@@ -14,17 +14,28 @@
       "description": "Guide for using Google Jules, the asynchronous AI coding agent",
       "source": "./plugins/jules",
       "category": "productivity",
-      "tags": ["jules", "google", "async", "coding-agent"]
+      "tags": ["jules", "google", "async", "coding-agent"],
+      "skills": ["./plugins/jules/skills/jules"]
     },
     {
       "name": "moon",
       "description": "Comprehensive moonrepo/moon knowledge for monorepo management, task running, and CI/CD integration",
-      "source": "./plugins/moon"
+      "source": "./plugins/moon",
+      "skills": ["./plugins/moon/skills/moon-knowledge"]
     },
     {
       "name": "svelte",
       "description": "Modern Svelte 5 and SvelteKit development assistant with runes patterns, remote functions, testing, performance optimization, proactive code review, and LSP support.",
-      "source": "./plugins/svelte"
+      "source": "./plugins/svelte",
+      "skills": [
+        "./plugins/svelte/skills/svelte-a11y",
+        "./plugins/svelte/skills/svelte-components",
+        "./plugins/svelte/skills/svelte-performance",
+        "./plugins/svelte/skills/svelte-runes",
+        "./plugins/svelte/skills/svelte-testing",
+        "./plugins/svelte/skills/sveltekit-remote-functions",
+        "./plugins/svelte/skills/sveltekit-server"
+      ]
     }
   ]
 }
