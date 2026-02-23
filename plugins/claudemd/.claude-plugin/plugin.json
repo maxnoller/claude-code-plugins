@@ -1,0 +1,10 @@
+{
+  "name": "claudemd",
+  "description": "Tools for optimizing CLAUDE.md files and reviewing sessions for friction and improvement opportunities.",
+  "author": {
+    "name": "Max Noller",
+    "email": "maxnoller@users.noreply.github.com"
+  },
+  "license": "MIT",
+  "keywords": ["claude", "claude-md", "context", "memory", "session-review", "optimization", "productivity"]
+}

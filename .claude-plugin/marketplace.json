@@ -25,6 +25,13 @@
       "name": "svelte",
       "description": "Modern Svelte 5 and SvelteKit development assistant with runes patterns, remote functions, testing, performance optimization, proactive code review, and LSP support.",
       "source": "./plugins/svelte"
+    },
+    {
+      "name": "claudemd",
+      "description": "Tools for optimizing CLAUDE.md files and reviewing sessions for friction. Includes /review-claude-md and /session-review commands.",
+      "source": "./plugins/claudemd",
+      "category": "productivity",
+      "tags": ["claude-md", "context", "memory", "session", "optimization"]
     }
   ]
 }
