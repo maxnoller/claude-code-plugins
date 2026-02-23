@@ -27,11 +27,11 @@
       "source": "./plugins/svelte"
     },
     {
-      "name": "claudemd",
-      "description": "Tools for optimizing CLAUDE.md files and reviewing sessions for friction. Includes /review-claude-md and /session-review commands.",
-      "source": "./plugins/claudemd",
+      "name": "context-files",
+      "description": "Tools for optimizing AI context files (CLAUDE.md, AGENTS.md) and reviewing sessions for friction. Includes /review and /session-review commands.",
+      "source": "./plugins/context-files",
       "category": "productivity",
-      "tags": ["claude-md", "context", "memory", "session", "optimization"]
+      "tags": ["claude-md", "agents-md", "context", "memory", "session", "optimization"]
     }
   ]
 }

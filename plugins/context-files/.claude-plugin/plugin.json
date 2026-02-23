@@ -1,0 +1,10 @@
+{
+  "name": "context-files",
+  "description": "Tools for optimizing AI context files (CLAUDE.md, AGENTS.md) and reviewing sessions for friction and improvement opportunities.",
+  "author": {
+    "name": "Max Noller",
+    "email": "maxnoller@users.noreply.github.com"
+  },
+  "license": "MIT",
+  "keywords": ["claude-md", "agents-md", "context", "memory", "session-review", "optimization", "productivity"]
+}
