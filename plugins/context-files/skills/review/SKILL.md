@@ -1,6 +1,7 @@
 ---
 name: review
 description: Review and optimize AI context files (CLAUDE.md, AGENTS.md) in the current project. Classifies each line as KEEP, REMOVE, or MOVE using the core test — would removing this cause the agent to make mistakes?
+disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
