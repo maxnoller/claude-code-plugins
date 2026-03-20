@@ -10,18 +10,6 @@
   },
   "plugins": [
     {
-      "name": "using-jules",
-      "description": "Guide for using Google Jules, the asynchronous AI coding agent",
-      "source": "./plugins/using-jules",
-      "category": "productivity",
-      "tags": ["jules", "google", "async", "coding-agent"]
-    },
-    {
-      "name": "moon",
-      "description": "Comprehensive moonrepo/moon knowledge for monorepo management, task running, and CI/CD integration",
-      "source": "./plugins/moon"
-    },
-    {
       "name": "svelte",
       "description": "Modern Svelte 5 and SvelteKit development assistant with runes patterns, remote functions, testing, performance optimization, proactive code review, and LSP support.",
       "source": "./plugins/svelte"
@@ -32,6 +20,20 @@
       "source": "./plugins/context-files",
       "category": "productivity",
       "tags": ["claude-md", "agents-md", "context", "memory", "session", "optimization"]
+    },
+    {
+      "name": "writing-modern-python",
+      "description": "Opinionated modern Python patterns for 2026 — testing, typing, tooling, and more.",
+      "source": "./plugins/writing-modern-python",
+      "category": "development",
+      "tags": ["python", "testing", "typing", "tooling", "patterns"]
+    },
+    {
+      "name": "ai-agent-evals",
+      "description": "Opinionated patterns for evaluating AI agents and LLM outputs.",
+      "source": "./plugins/ai-agent-evals",
+      "category": "development",
+      "tags": ["ai", "evals", "agents", "llm", "testing"]
     }
   ]
 }
