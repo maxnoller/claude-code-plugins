@@ -1,0 +1,23 @@
+{
+  "eval_id": 8,
+  "eval_name": "uv-dockerfile",
+  "prompt": "Write a Dockerfile for my Python web app that uses FastAPI. The project uses uv for dependency management.",
+  "assertions": [
+    {
+      "text": "ghcr.io/astral-sh/uv",
+      "type": "contains"
+    },
+    {
+      "text": "uv sync",
+      "type": "contains"
+    },
+    {
+      "text": "pip install",
+      "type": "not_contains"
+    },
+    {
+      "text": "Uses a multi-stage or two-step COPY pattern: copies pyproject.toml and uv.lock first, syncs dependencies, then copies application code for optimal Docker layer caching",
+      "type": "llm"
+    }
+  ]
+}

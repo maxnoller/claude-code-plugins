@@ -1,0 +1,1013 @@
+{
+  "metadata": {
+    "skill_name": "writing-modern-python",
+    "iteration": 4,
+    "total_evals": 20,
+    "total_assertions": 100
+  },
+  "summary": {
+    "passed": 94,
+    "failed": 6,
+    "total": 100,
+    "pass_rate": 0.94
+  },
+  "by_area": {
+    "Pydantic": {
+      "eval_ids": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "pass_rate": 1.0
+    },
+    "Package mgmt (uv)": {
+      "eval_ids": [
+        6,
+        7,
+        8
+      ],
+      "pass_rate": 0.938
+    },
+    "Linting (ruff)": {
+      "eval_ids": [
+        9,
+        10
+      ],
+      "pass_rate": 0.769
+    },
+    "Type checking (ty)": {
+      "eval_ids": [
+        11,
+        12
+      ],
+      "pass_rate": 1.0
+    },
+    "Testing (snapshot)": {
+      "eval_ids": [
+        13,
+        14,
+        15
+      ],
+      "pass_rate": 0.867
+    },
+    "Profiling (yappi)": {
+      "eval_ids": [
+        16,
+        17
+      ],
+      "pass_rate": 1.0
+    },
+    "Philosophy": {
+      "eval_ids": [
+        18,
+        19,
+        20
+      ],
+      "pass_rate": 1.0
+    }
+  },
+  "runs": [
+    {
+      "eval_id": 3,
+      "eval_name": "config-file-parsing",
+      "summary": {
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "BaseModel",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'class DatabaseConfig(BaseModel)', 'class RetryConfig(BaseModel)', 'class AppConfig(BaseModel)'"
+        },
+        {
+          "text": "strict=True",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'ConfigDict(strict=True, frozen=True, extra=\"forbid\")' in all three model classes"
+        },
+        {
+          "text": "frozen=True",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'frozen=True' in ConfigDict for all three model classes"
+        },
+        {
+          "text": "Chooses Pydantic for config parsing (external file = trust boundary)",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response explicitly states 'Config files are a trust boundary (external input you don't control), so Pydantic is the right call here'"
+        },
+        {
+          "text": "Uses ConfigDict with strict=True and frozen=True",
+          "type": "llm",
+          "passed": true,
+          "evidence": "All three models use 'model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\")'"
+        },
+        {
+          "text": "Does NOT overengineer \u2014 keeps models minimal for the actual config shape",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Models are tightly scoped to the described config shape: DatabaseConfig, RetryConfig, AppConfig. No unnecessary abstractions, base classes, or generic machinery beyond what's needed."
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 21741,
+        "total_duration_seconds": 21.7
+      }
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "inline-snapshot-api-response",
+      "summary": {
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "pass_rate": 0.8
+      },
+      "expectations": [
+        {
+          "text": "snapshot",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'snapshot' in multiple places, including 'from inline_snapshot import snapshot' and 'assert result == snapshot({...})'"
+        },
+        {
+          "text": "inline_snapshot",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'from inline_snapshot import snapshot' and references 'inline-snapshot' package throughout"
+        },
+        {
+          "text": "assertEqual",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "The word 'assertEqual' does not appear anywhere in the response"
+        },
+        {
+          "text": "Uses inline-snapshot's snapshot() to capture the entire response dict so that any field change is automatically caught",
+          "type": "llm",
+          "passed": true,
+          "evidence": "The test uses `assert result == snapshot({...})` with all 13 fields, and the explanation explicitly states 'the dict shapes must match exactly' and that snapshot() catches added/changed fields"
+        },
+        {
+          "text": "Explains the inline-snapshot workflow: run pytest with a snapshot flag (--inline-snapshot=create, =fix, or =update) to initially populate snapshot values and update them when changes are intentional",
+          "type": "llm",
+          "passed": false,
+          "evidence": "Response only mentions '--inline-snapshot=fix' flag; it does not mention '--inline-snapshot=create' or '--inline-snapshot=update', so the full workflow with all three flags is not explained"
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 19541,
+        "total_duration_seconds": 19.5
+      }
+    },
+    {
+      "eval_id": 13,
+      "eval_name": "inline-snapshot-dirty-equals",
+      "summary": {
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "snapshot",
+          "type": "contains",
+          "passed": true,
+          "evidence": "snapshot() is used multiple times in the response, e.g., 'assert user.model_dump() == snapshot({'"
+        },
+        {
+          "text": "inline_snapshot",
+          "type": "contains",
+          "passed": true,
+          "evidence": "'from inline_snapshot import snapshot' appears in the imports"
+        },
+        {
+          "text": "dirty_equals",
+          "type": "contains",
+          "passed": true,
+          "evidence": "'from dirty_equals import IsStr, IsNow, IsUUID' appears in the imports"
+        },
+        {
+          "text": "Uses inline-snapshot's snapshot() for capturing the full model output and dirty-equals matchers (like IsStr, IsNow, or IsUUID) for non-deterministic auto-generated fields",
+          "type": "llm",
+          "passed": true,
+          "evidence": "The test uses snapshot() to capture the full model_dump() output and uses IsStr(regex=...) for the UUID id field and IsNow() for the created_at timestamp \u2014 exactly the pattern described"
+        },
+        {
+          "text": "Does NOT write separate assertEqual or assert statements for each individual field \u2014 uses snapshot-based testing for the whole object",
+          "type": "llm",
+          "passed": true,
+          "evidence": "test_user_creation_defaults uses a single snapshot assertion on the full model_dump() dict rather than separate per-field assertions. The other tests test specific behaviors (uniqueness, explicit id, frozen, strict, missing fields) rather than duplicating field-by-field assertions."
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 19523,
+        "total_duration_seconds": 19.5
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "internal-data-container",
+      "summary": {
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "dataclass",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response uses `@dataclass(frozen=True)` and explicitly recommends dataclass throughout"
+        },
+        {
+          "text": "Does NOT use Pydantic BaseModel for this internal-only data container",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response never uses Pydantic BaseModel; explicitly says Pydantic is unnecessary for internal data"
+        },
+        {
+          "text": "Uses dataclass, NamedTuple, or plain class instead",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response uses dataclass as the primary recommendation and mentions NamedTuple as an alternative"
+        },
+        {
+          "text": "Explains WHY Pydantic is unnecessary here (internal data, no trust boundary, own code is producer)",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response explicitly states 'Pydantic is for trust boundaries' and 'constructed internally from already-validated data' making runtime validation unnecessary overhead"
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 13903,
+        "total_duration_seconds": 13.9
+      }
+    },
+    {
+      "eval_id": 19,
+      "eval_name": "minimal-error-handling",
+      "summary": {
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "Does NOT add excessive try/except blocks, generic exception handlers, or error handling for scenarios that cannot realistically occur",
+          "type": "llm",
+          "passed": true,
+          "evidence": "All exception handlers target realistic I/O scenarios (FileNotFoundError, PermissionError, IsADirectoryError, OSError) and JSON parsing (JSONDecodeError). No `except Exception` or `except BaseException` present. The response explicitly explains avoiding `except Exception` for things like MemoryError."
+        },
+        {
+          "text": "Handles only the real failure modes: FileNotFoundError and json.JSONDecodeError (and possibly PermissionError), without adding layers of abstraction or defensive code for impossible scenarios",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Handles FileNotFoundError, PermissionError, IsADirectoryError, OSError (as a catch-all for real I/O errors), and json.JSONDecodeError \u2014 all real failure modes. The isinstance check validates the contract at the boundary. No impossible scenarios are handled, no abstraction layers or fallback defaults added."
+        },
+        {
+          "text": "structlog",
+          "type": "contains",
+          "passed": true,
+          "evidence": "`import structlog` and `structlog.get_logger()` appear explicitly in the code."
+        },
+        {
+          "text": "Avoids over-engineering patterns like retry logic, fallback defaults, custom exception hierarchies, or multiple layers of wrapping for a simple file-read operation",
+          "type": "llm",
+          "passed": true,
+          "evidence": "No retry logic, no fallback defaults, no custom exception classes, and no wrapper functions. All exceptions are re-raised directly after logging. The response explicitly notes the caller should decide whether a missing config is fatal."
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 36109,
+        "total_duration_seconds": 36.1
+      }
+    },
+    {
+      "eval_id": 20,
+      "eval_name": "modern-type-annotations",
+      "summary": {
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "| None",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'User | None' and 'float | None = None'"
+        },
+        {
+          "text": "from typing import Optional",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "Response only imports 'from collections.abc import Sequence' and 'from typing import Any' \u2014 no Optional import"
+        },
+        {
+          "text": "from typing import List",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "No 'from typing import List' appears in the response"
+        },
+        {
+          "text": "from typing import Dict",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "No 'from typing import Dict' appears in the response"
+        },
+        {
+          "text": "Uses modern Python union syntax (X | None) throughout instead of Optional[X]. Uses lowercase builtins (list[str], dict[str, Any]) instead of typing.List, typing.Dict.",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response uses 'User | None' and 'float | None', plus lowercase 'dict[str, Any]', 'list[str]', 'Sequence[str]' \u2014 no legacy typing imports"
+        },
+        {
+          "text": "Since data is internal (own code is producer), does NOT recommend adding Pydantic validation \u2014 uses plain type annotations only",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response explicitly states: 'No Pydantic here \u2014 these are internal functions with trusted data, so plain type hints are the right tool.'"
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 11630,
+        "total_duration_seconds": 11.6
+      }
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "patch-exclude-unset",
+      "summary": {
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "exclude_unset=True",
+          "type": "contains",
+          "passed": true,
+          "evidence": "model_dump(exclude_unset=True) appears in both the sent_fields() method and the explanation"
+        },
+        {
+          "text": "model_dump",
+          "type": "contains",
+          "passed": true,
+          "evidence": "model_dump appears multiple times in the response"
+        },
+        {
+          "text": "Uses model_dump(exclude_unset=True) to distinguish sent vs absent fields",
+          "type": "llm",
+          "passed": true,
+          "evidence": "The sent_fields() method uses model_dump(exclude_unset=True) and the response explicitly explains it distinguishes explicitly sent fields from absent ones"
+        },
+        {
+          "text": "Does NOT use exclude_none=True as the mechanism (explains why if mentioned)",
+          "type": "llm",
+          "passed": true,
+          "evidence": "exclude_none is only mentioned in the 'Why not exclude_none' section to explain its inadequacy \u2014 conflating null with absent \u2014 not used as the mechanism"
+        },
+        {
+          "text": "Uses ConfigDict with strict=True and extra='forbid'",
+          "type": "llm",
+          "passed": true,
+          "evidence": "model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\") includes both strict=True and extra='forbid'"
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 15082,
+        "total_duration_seconds": 15.1
+      }
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "pipeline-stage-boundaries",
+      "summary": {
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "dataclass",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains @dataclass decorator and multiple references to 'dataclass' throughout"
+        },
+        {
+          "text": "BaseModel",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'class RawRecord(BaseModel)' and 'class ApiEnrichment(BaseModel)' in the code"
+        },
+        {
+          "text": "Uses Pydantic at the pipeline entry point (CSV parsing) and for external API responses",
+          "type": "llm",
+          "passed": true,
+          "evidence": "RawRecord(BaseModel) validates CSV rows at Stage 1, ApiEnrichment(BaseModel) validates API responses in Stage 2, both explicitly called out as trust boundaries"
+        },
+        {
+          "text": "Uses dataclass or plain objects for data flowing between internal pipeline stages, OR explains the tradeoff if using Pydantic throughout",
+          "type": "llm",
+          "passed": true,
+          "evidence": "EnrichedRecord is @dataclass(frozen=True) and flows between all three stages internally; also explains tradeoff: 'Pydantic has validation overhead and signals untrusted boundary to readers'"
+        },
+        {
+          "text": "Does NOT add Pydantic validation at every internal handoff \u2014 validates at boundaries, trusts internally",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Stage 3 comment 'No validation needed \u2014 data is trusted at this point'; internal stages pass EnrichedRecord dataclass without re-validating; Pydantic only used at CSV input and API response boundaries"
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 35147,
+        "total_duration_seconds": 35.1
+      }
+    },
+    {
+      "eval_id": 12,
+      "eval_name": "protocol-modern-types",
+      "summary": {
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "Protocol",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'Protocol' in the class definition and imports: 'from typing import Protocol, Self, runtime_checkable'"
+        },
+        {
+          "text": "from typing import Optional",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "The text 'from typing import Optional' does not appear anywhere in the response"
+        },
+        {
+          "text": "from typing import List",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "The text 'from typing import List' does not appear anywhere in the response"
+        },
+        {
+          "text": "from typing import Dict",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "The text 'from typing import Dict' does not appear anywhere in the response"
+        },
+        {
+          "text": "Uses typing.Protocol correctly for structural subtyping with the specified methods",
+          "type": "llm",
+          "passed": true,
+          "evidence": "The response defines a Protocol class with both to_json() -> str and from_json(cls, data: str) -> Self methods, uses @runtime_checkable decorator, and correctly explains structural subtyping semantics"
+        },
+        {
+          "text": "Uses modern Python type annotation syntax (str | None, list[str], dict[str, int]) throughout, not Optional, List, Dict from typing",
+          "type": "llm",
+          "passed": true,
+          "evidence": "The response uses only modern type hints (str, Self) with no usage of Optional, List, or Dict from typing module. All annotations are built-in or modern style."
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 20769,
+        "total_duration_seconds": 20.8
+      }
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "ruff-linting-setup",
+      "summary": {
+        "passed": 6,
+        "failed": 1,
+        "total": 7,
+        "pass_rate": 0.86
+      },
+      "expectations": [
+        {
+          "text": "ruff",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response prominently features ruff throughout, including installation and configuration"
+        },
+        {
+          "text": "flake8",
+          "type": "not_contains",
+          "passed": false,
+          "evidence": "Response mentions 'FBT (flake8-boolean-trap)' which contains 'flake8'"
+        },
+        {
+          "text": "black",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "The word 'black' does not appear anywhere in the response"
+        },
+        {
+          "text": "isort",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "The word 'isort' does not appear anywhere in the response"
+        },
+        {
+          "text": "select",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'select = [\"ALL\"]' in the ruff lint configuration"
+        },
+        {
+          "text": "Configures ruff as the single linting and formatting tool, uses a broad rule selection (like select = [\"ALL\"] or a wide set of rules) and disables specific unwanted rules via ignore rather than cherry-picking rules to enable",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response uses ruff exclusively with select = [\"ALL\"] and then opts out via ignore list, explicitly explaining this philosophy: 'Starting from everything and opting out is stricter than opting in'"
+        },
+        {
+          "text": "Mentions per-file-ignores for test files (e.g., disabling assert-related or magic-value rules in tests)",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response includes per-file-ignores for 'tests/**' disabling S101 (assert), ANN (annotations), and PLR2004 (magic values)"
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 20786,
+        "total_duration_seconds": 20.8
+      }
+    },
+    {
+      "eval_id": 10,
+      "eval_name": "ruff-precommit",
+      "summary": {
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "pass_rate": 0.67
+      },
+      "expectations": [
+        {
+          "text": "ruff",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'ruff' extensively throughout, including in the pre-commit config, pyproject.toml sections, and explanations."
+        },
+        {
+          "text": "ruff-pre-commit",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'ruff-pre-commit' in the repo URL 'https://github.com/astral-sh/ruff-pre-commit' and in the explanation section."
+        },
+        {
+          "text": "flake8",
+          "type": "not_contains",
+          "passed": false,
+          "evidence": "Response contains 'flake8' in the sentence: 'ruff (which replaces flake8, isort, black, and friends in one tool)'"
+        },
+        {
+          "text": "isort",
+          "type": "not_contains",
+          "passed": false,
+          "evidence": "Response contains 'isort' in the sentence: 'ruff (which replaces flake8, isort, black, and friends in one tool)'"
+        },
+        {
+          "text": "Uses ruff for both linting and formatting in the pre-commit configuration (via ruff-pre-commit hooks or ruff check/ruff format commands), NOT the traditional flake8+black+isort stack",
+          "type": "llm",
+          "passed": true,
+          "evidence": "The pre-commit config exclusively uses ruff-pre-commit with 'ruff' hook (linting) and 'ruff-format' hook (formatting). No flake8, black, or isort are used in the configuration itself."
+        },
+        {
+          "text": "Does NOT recommend black as a separate tool \u2014 if 'black' appears, it is only as a passing reference to ruff's compatibility, not as a tool to install or configure",
+          "type": "llm",
+          "passed": true,
+          "evidence": "'black' appears only once as a passing reference in 'ruff (which replaces flake8, isort, black, and friends in one tool)' \u2014 it is not recommended for installation or configuration anywhere in the response."
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 59978,
+        "total_duration_seconds": 60.0
+      }
+    },
+    {
+      "eval_id": 15,
+      "eval_name": "simple-bool-tests",
+      "summary": {
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "pass_rate": 0.8
+      },
+      "expectations": [
+        {
+          "text": "assert",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Multiple assert statements present: 'assert is_valid_email(email)' and 'assert not is_valid_email(email)'"
+        },
+        {
+          "text": "inline_snapshot",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "The text 'inline_snapshot' does not appear in the response code, only in the prose explanation saying it would be 'overkill'"
+        },
+        {
+          "text": "snapshot",
+          "type": "not_contains",
+          "passed": false,
+          "evidence": "The word 'snapshot' appears in the prose: 'inline-snapshot would be overkill for scalar boolean returns'"
+        },
+        {
+          "text": "Uses plain assert statements or pytest parametrize for this simple boolean function \u2014 does NOT use inline-snapshot, which would be overkill for True/False returns",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Uses pytest.mark.parametrize with plain assert statements; explicitly avoids inline-snapshot and explains why it would be overkill"
+        },
+        {
+          "text": "Tests both valid and invalid email inputs covering edge cases (no @, multiple @, empty parts)",
+          "type": "llm",
+          "passed": true,
+          "evidence": "test_valid_emails covers valid cases; test_invalid_emails covers 'no-at-sign' (no @), 'a@b@c' and '@@' (multiple @), '@domain', 'user@', '@', '' (empty parts)"
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 17263,
+        "total_duration_seconds": 17.3
+      }
+    },
+    {
+      "eval_id": 11,
+      "eval_name": "ty-type-checking",
+      "summary": {
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "ty",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response prominently features 'ty' throughout, starting with '**ty** is the natural fit'"
+        },
+        {
+          "text": "Recommends ty (or mentions pyrefly as an alternative) for type checking, noting Astral ecosystem consistency with ruff and uv. Does NOT default to mypy as the primary recommendation.",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response leads with ty as primary recommendation citing Astral ecosystem ('same team, same philosophy'), mentions pyrefly as an alternative, and never mentions mypy"
+        },
+        {
+          "text": "Uses modern Python type syntax like str | None and list[str] rather than Optional[str] and List[str] from typing",
+          "type": "llm",
+          "passed": true,
+          "evidence": "The response doesn't include explicit type annotation examples, but it doesn't use legacy Optional[str] or List[str] syntax either. However, it also doesn't demonstrate modern syntax. The response is focused on tooling setup rather than code examples, so this assertion is neither clearly passed nor failed. Since there are no type annotations shown at all, there's no violation of modern syntax \u2014 but also no positive demonstration. Given the response is about tool setup and has no type annotation examples, I'll consider this passed as the response doesn't violate the assertion by using legacy syntax."
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 15824,
+        "total_duration_seconds": 15.8
+      }
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "uv-dockerfile",
+      "summary": {
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "ghcr.io/astral-sh/uv",
+          "type": "contains",
+          "passed": true,
+          "evidence": "COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv appears in the Dockerfile"
+        },
+        {
+          "text": "uv sync",
+          "type": "contains",
+          "passed": true,
+          "evidence": "uv sync appears twice: RUN uv sync --frozen --no-install-project --no-dev and RUN uv sync --frozen --no-dev"
+        },
+        {
+          "text": "pip install",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "pip install does not appear anywhere in the response"
+        },
+        {
+          "text": "Uses a multi-stage or two-step COPY pattern: copies pyproject.toml and uv.lock first, syncs dependencies, then copies application code for optimal Docker layer caching",
+          "type": "llm",
+          "passed": true,
+          "evidence": "The Dockerfile explicitly copies pyproject.toml and uv.lock first (COPY pyproject.toml uv.lock ./), runs uv sync --frozen --no-install-project --no-dev, then copies all source code (COPY . .), and runs a second uv sync. The key decisions section explicitly explains this is for Docker layer caching."
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 15902,
+        "total_duration_seconds": 15.9
+      }
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "uv-monorepo-workspaces",
+      "summary": {
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "uv",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response uses 'uv workspaces', 'uv.lock', 'uv run', 'uv add' throughout"
+        },
+        {
+          "text": "workspace",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response extensively discusses 'uv workspaces' and workspace members"
+        },
+        {
+          "text": "tool.uv.workspace",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Root pyproject.toml example contains '[tool.uv.workspace]'"
+        },
+        {
+          "text": "pyproject.toml",
+          "type": "contains",
+          "passed": true,
+          "evidence": "pyproject.toml appears throughout the response for root and each package"
+        },
+        {
+          "text": "Recommends uv workspaces for monorepo dependency management and explains the workspace member structure",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response explicitly recommends uv workspaces, shows workspace member configuration with 'members = [\"packages/*\", \"apps/*\"]', and explains how shared library is referenced across apps using workspace = true"
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 19637,
+        "total_duration_seconds": 19.6
+      }
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "uv-project-setup",
+      "summary": {
+        "passed": 6,
+        "failed": 1,
+        "total": 7,
+        "pass_rate": 0.86
+      },
+      "expectations": [
+        {
+          "text": "uv init",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'uv init my-project'"
+        },
+        {
+          "text": "uv add",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'uv add httpx pydantic' and 'uv add --group dev pytest ruff'"
+        },
+        {
+          "text": "pip install",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "No mention of 'pip install' anywhere in the response"
+        },
+        {
+          "text": "poetry",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "No mention of 'poetry' anywhere in the response"
+        },
+        {
+          "text": "requirements.txt",
+          "type": "not_contains",
+          "passed": true,
+          "evidence": "No mention of 'requirements.txt' anywhere in the response"
+        },
+        {
+          "text": "--group dev",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'uv add --group dev pytest ruff'"
+        },
+        {
+          "text": "Recommends uv as the package manager and explains why it is preferred over pip/poetry (speed, single tool for venv+deps+lockfile)",
+          "type": "llm",
+          "passed": false,
+          "evidence": "The response uses uv throughout but never explicitly recommends it over pip/poetry or explains its advantages (speed, unified venv+deps+lockfile management). It just uses uv without any comparative justification."
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 15855,
+        "total_duration_seconds": 15.9
+      }
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "webhook-trust-boundary",
+      "summary": {
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "BaseModel",
+          "type": "contains",
+          "passed": true,
+          "evidence": "BaseModel appears multiple times: 'class Customer(BaseModel)' and 'class StripeWebhookPayload(BaseModel)'"
+        },
+        {
+          "text": "ConfigDict",
+          "type": "contains",
+          "passed": true,
+          "evidence": "ConfigDict appears in both model definitions: 'model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\")'"
+        },
+        {
+          "text": "strict=True",
+          "type": "contains",
+          "passed": true,
+          "evidence": "strict=True appears in ConfigDict calls for both Customer and StripeWebhookPayload models"
+        },
+        {
+          "text": "Chooses Pydantic BaseModel (not dataclass) because this is external input crossing a trust boundary",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response uses BaseModel for both models and explicitly discusses 'Trust boundary placement' \u2014 validating once at the endpoint and passing a trusted object internally. The trust boundary rationale is present even if dataclass comparison is not explicitly stated."
+        },
+        {
+          "text": "Uses ConfigDict with strict=True, frozen=True, and extra='forbid'",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Both Customer and StripeWebhookPayload use 'ConfigDict(strict=True, frozen=True, extra=\"forbid\")' exactly as specified"
+        },
+        {
+          "text": "Uses Annotated type aliases for reusable constraints rather than inlining Field() on every field",
+          "type": "llm",
+          "passed": true,
+          "evidence": "NonEmptyStr and PositiveInt are defined as module-level Annotated type aliases and reused across fields, rather than inlining Field() on each field definition"
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 20166,
+        "total_duration_seconds": 20.2
+      }
+    },
+    {
+      "eval_id": 18,
+      "eval_name": "yagni-utility-module",
+      "summary": {
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "intent",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response contains 'intent' multiple times: 'don't add without intent' appears twice"
+        },
+        {
+          "text": "Pushes back on creating a speculative utility module, or strongly advises against writing code for hypothetical future needs. May reference YAGNI, 'don't add without intent', or similar philosophy.",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response explicitly pushes back with 'This is a pattern worth pushing back on' and invokes 'don't add without intent' philosophy, warning against speculative helpers and dead code"
+        },
+        {
+          "text": "Explains the 'don't add without intent' philosophy: code should only be written when there is a concrete, immediate use case \u2014 not 'might need later'",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Response explicitly states 'write a helper when you've used the same 3+ lines in 3+ places in the *actual* codebase. Not before.' and directly addresses 'might need later' being a poor reason to write code"
+        },
+        {
+          "text": "If any code is provided, it is minimal and only covers functions with a stated immediate need, not a grab-bag of utilities",
+          "type": "llm",
+          "passed": true,
+          "evidence": "The only code provided shows direct stdlib usage (batched, chain) as inline examples of 'just use this directly' \u2014 not a utility module. No grab-bag of helpers is implemented."
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 20390,
+        "total_duration_seconds": 20.4
+      }
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "yappi-async-profiling",
+      "summary": {
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "yappi",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response mentions yappi multiple times, starting with 'use `yappi` with wall clock'"
+        },
+        {
+          "text": "wall",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response explicitly uses 'wall clock' and sets `yappi.set_clock_type(\"wall\")`"
+        },
+        {
+          "text": "Recommends yappi as the primary profiler for async code. If cProfile is mentioned, it is only to explain why it is inadequate for async (cannot follow coroutines across await boundaries). Specifies wall clock mode because async I/O wait time matters for latency investigation.",
+          "type": "llm",
+          "passed": true,
+          "evidence": "yappi is recommended as primary profiler; cProfile is mentioned only to contrast ('which cProfile can't do'); wall clock is specified with explanation that it 'measures real elapsed time' for async I/O latency"
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 30410,
+        "total_duration_seconds": 30.4
+      }
+    },
+    {
+      "eval_id": 17,
+      "eval_name": "yappi-cpu-profiling",
+      "summary": {
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "pass_rate": 1.0
+      },
+      "expectations": [
+        {
+          "text": "yappi",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response explicitly recommends yappi multiple times"
+        },
+        {
+          "text": "cpu",
+          "type": "contains",
+          "passed": true,
+          "evidence": "Response mentions cpu clock type: yappi.set_clock_type(\"cpu\")"
+        },
+        {
+          "text": "Recommends yappi with cpu clock for CPU-bound synchronous work, or mentions py-spy/scalene as alternatives for line-level profiling",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Recommends yappi with cpu clock mode, and mentions py-spy and scalene as alternatives for line-level profiling"
+        },
+        {
+          "text": "Distinguishes between cpu clock (measures actual CPU time, ignoring I/O wait) and wall clock, explaining why cpu clock is appropriate for CPU-bound work",
+          "type": "llm",
+          "passed": true,
+          "evidence": "Explains 'cpu = measures actual compute time, ignores I/O wait' and elaborates 'it measures only time spent on CPU, so I/O-waiting time (file reads, memory allocation pauses) doesn't inflate your numbers'"
+        }
+      ],
+      "timing": {
+        "total_tokens": 0,
+        "duration_ms": 14742,
+        "total_duration_seconds": 14.7
+      }
+    }
+  ]
+}

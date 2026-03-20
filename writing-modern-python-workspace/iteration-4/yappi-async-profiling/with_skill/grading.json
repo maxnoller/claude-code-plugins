@@ -1,0 +1,28 @@
+{
+  "expectations": [
+    {
+      "text": "yappi",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response mentions yappi multiple times, starting with 'use `yappi` with wall clock'"
+    },
+    {
+      "text": "wall",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response explicitly uses 'wall clock' and sets `yappi.set_clock_type(\"wall\")`"
+    },
+    {
+      "text": "Recommends yappi as the primary profiler for async code. If cProfile is mentioned, it is only to explain why it is inadequate for async (cannot follow coroutines across await boundaries). Specifies wall clock mode because async I/O wait time matters for latency investigation.",
+      "type": "llm",
+      "passed": true,
+      "evidence": "yappi is recommended as primary profiler; cProfile is mentioned only to contrast ('which cProfile can't do'); wall clock is specified with explanation that it 'measures real elapsed time' for async I/O latency"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  }
+}

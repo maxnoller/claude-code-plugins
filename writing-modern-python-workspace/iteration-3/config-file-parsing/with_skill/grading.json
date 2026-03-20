@@ -1,0 +1,5 @@
+{"run_id": "config-file-parsing-with_skill", "expectations": [
+  {"text": "Chooses Pydantic for config parsing (external file = trust boundary)", "passed": true, "evidence": "All 3 models (DatabaseConfig, RetryConfig, AppConfig) use Pydantic BaseModel"},
+  {"text": "Uses ConfigDict with strict=True and frozen=True", "passed": true, "evidence": "Lines 18, 28, 35: ConfigDict(strict=True, frozen=True, extra='forbid')"},
+  {"text": "Does NOT overengineer — keeps models minimal", "passed": true, "evidence": "45 lines total. load_config is 3 lines. No manual validation helpers needed — Pydantic handles it declaratively."}
+]}

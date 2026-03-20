@@ -1,0 +1,25 @@
+{
+  "run_id": "computed-fields-serialization-with_skill",
+  "expectations": [
+    {
+      "text": "Uses @computed_field decorator with @property for derived fields",
+      "passed": true,
+      "evidence": "Lines 19-32: @computed_field with @cached_property (superior to @property for frozen models)"
+    },
+    {
+      "text": "Uses frozen=True (required for immutability, also enables @cached_property if used)",
+      "passed": true,
+      "evidence": "Line 12: ConfigDict(strict=True, frozen=True)"
+    },
+    {
+      "text": "Uses field_serializer or PlainSerializer for dollar formatting",
+      "passed": true,
+      "evidence": "Line 34: @field_serializer('price_dollars', 'tax_amount', 'total') — all three in one decorator"
+    },
+    {
+      "text": "Computed fields have explicit return type annotations",
+      "passed": true,
+      "evidence": "Lines 21, 25, 31: all have -> float return type annotations"
+    }
+  ]
+}

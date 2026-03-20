@@ -1,0 +1,34 @@
+{
+  "expectations": [
+    {
+      "text": "intent",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'intent' multiple times: 'don't add without intent' appears twice"
+    },
+    {
+      "text": "Pushes back on creating a speculative utility module, or strongly advises against writing code for hypothetical future needs. May reference YAGNI, 'don't add without intent', or similar philosophy.",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response explicitly pushes back with 'This is a pattern worth pushing back on' and invokes 'don't add without intent' philosophy, warning against speculative helpers and dead code"
+    },
+    {
+      "text": "Explains the 'don't add without intent' philosophy: code should only be written when there is a concrete, immediate use case \u2014 not 'might need later'",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response explicitly states 'write a helper when you've used the same 3+ lines in 3+ places in the *actual* codebase. Not before.' and directly addresses 'might need later' being a poor reason to write code"
+    },
+    {
+      "text": "If any code is provided, it is minimal and only covers functions with a stated immediate need, not a grab-bag of utilities",
+      "type": "llm",
+      "passed": true,
+      "evidence": "The only code provided shows direct stdlib usage (batched, chain) as inline examples of 'just use this directly' \u2014 not a utility module. No grab-bag of helpers is implemented."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

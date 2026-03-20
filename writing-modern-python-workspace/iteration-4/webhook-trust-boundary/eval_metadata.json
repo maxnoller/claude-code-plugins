@@ -1,0 +1,31 @@
+{
+  "eval_id": 1,
+  "eval_name": "webhook-trust-boundary",
+  "prompt": "I'm writing a FastAPI endpoint that accepts JSON webhooks from Stripe. The payload has event_type, timestamp, amount_cents, currency, and a nested customer object. I need to validate this and reject malformed payloads. Write the code.",
+  "assertions": [
+    {
+      "text": "BaseModel",
+      "type": "contains"
+    },
+    {
+      "text": "ConfigDict",
+      "type": "contains"
+    },
+    {
+      "text": "strict=True",
+      "type": "contains"
+    },
+    {
+      "text": "Chooses Pydantic BaseModel (not dataclass) because this is external input crossing a trust boundary",
+      "type": "llm"
+    },
+    {
+      "text": "Uses ConfigDict with strict=True, frozen=True, and extra='forbid'",
+      "type": "llm"
+    },
+    {
+      "text": "Uses Annotated type aliases for reusable constraints rather than inlining Field() on every field",
+      "type": "llm"
+    }
+  ]
+}

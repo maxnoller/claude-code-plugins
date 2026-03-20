@@ -1,0 +1,30 @@
+{
+  "run_id": "stripe-webhook-unions-without_skill",
+  "expectations": [
+    {
+      "text": "Uses discriminated union with Field(discriminator=...) for event type polymorphism",
+      "passed": true,
+      "evidence": "Line 72: Field(discriminator='event_type'), Line 79: Field(discriminator='event_type')"
+    },
+    {
+      "text": "Uses Literal types for event_type field values",
+      "passed": true,
+      "evidence": "Lines 30, 39, 48, 57: Literal['invoice.paid'], Literal['invoice.payment_failed'], etc."
+    },
+    {
+      "text": "Uses ConfigDict with strict=True",
+      "passed": false,
+      "evidence": "No ConfigDict on any model. Only model_config = {'populate_by_name': True} on line 81"
+    },
+    {
+      "text": "Uses frozen=True or ConfigDict(frozen=True)",
+      "passed": false,
+      "evidence": "No frozen=True on any model"
+    },
+    {
+      "text": "Does NOT use old v1 patterns like .dict(), .parse_obj(), Optional defaulting to None without explicit default",
+      "passed": true,
+      "evidence": "Uses v2 patterns: model_validate on line 86, str | None = None on line 11"
+    }
+  ]
+}

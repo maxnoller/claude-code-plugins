@@ -1,0 +1,5 @@
+{"run_id": "pipeline-stage-boundaries-with_skill", "expectations": [
+  {"text": "Uses Pydantic at the pipeline entry point and for external API responses", "passed": true, "evidence": "CleanedRecord (line 36) and EnrichedRecord (line 68) are Pydantic BaseModels with strict/frozen/forbid at stage boundaries"},
+  {"text": "Uses dataclass or plain objects for internal flow, OR explains the tradeoff", "passed": true, "evidence": "Docstring line 8: 'Internal helpers use plain dataclasses'. Stage functions are plain Python — Pydantic only at stage exits."},
+  {"text": "Does NOT add Pydantic validation at every internal handoff", "passed": true, "evidence": "Stage functions construct Pydantic models at exit only. No re-validation between stages."}
+]}

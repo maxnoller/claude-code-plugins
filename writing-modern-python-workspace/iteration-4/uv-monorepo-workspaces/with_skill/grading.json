@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "uv",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response uses 'uv workspaces', 'uv.lock', 'uv run', 'uv add' throughout"
+    },
+    {
+      "text": "workspace",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response extensively discusses 'uv workspaces' and workspace members"
+    },
+    {
+      "text": "tool.uv.workspace",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Root pyproject.toml example contains '[tool.uv.workspace]'"
+    },
+    {
+      "text": "pyproject.toml",
+      "type": "contains",
+      "passed": true,
+      "evidence": "pyproject.toml appears throughout the response for root and each package"
+    },
+    {
+      "text": "Recommends uv workspaces for monorepo dependency management and explains the workspace member structure",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response explicitly recommends uv workspaces, shows workspace member configuration with 'members = [\"packages/*\", \"apps/*\"]', and explains how shared library is referenced across apps using workspace = true"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

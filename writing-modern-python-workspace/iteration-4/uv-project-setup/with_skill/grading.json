@@ -1,0 +1,52 @@
+{
+  "expectations": [
+    {
+      "text": "uv init",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'uv init my-project'"
+    },
+    {
+      "text": "uv add",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'uv add httpx pydantic' and 'uv add --group dev pytest ruff'"
+    },
+    {
+      "text": "pip install",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "No mention of 'pip install' anywhere in the response"
+    },
+    {
+      "text": "poetry",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "No mention of 'poetry' anywhere in the response"
+    },
+    {
+      "text": "requirements.txt",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "No mention of 'requirements.txt' anywhere in the response"
+    },
+    {
+      "text": "--group dev",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'uv add --group dev pytest ruff'"
+    },
+    {
+      "text": "Recommends uv as the package manager and explains why it is preferred over pip/poetry (speed, single tool for venv+deps+lockfile)",
+      "type": "llm",
+      "passed": false,
+      "evidence": "The response uses uv throughout but never explicitly recommends it over pip/poetry or explains its advantages (speed, unified venv+deps+lockfile management). It just uses uv without any comparative justification."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 1,
+    "total": 7,
+    "pass_rate": 0.86
+  }
+}

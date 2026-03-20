@@ -1,0 +1,27 @@
+{
+  "eval_id": 15,
+  "eval_name": "simple-bool-tests",
+  "prompt": "Write tests for this simple validator function:\n\n```python\ndef is_valid_email(email: str) -> bool:\n    \"\"\"Returns True if email has exactly one @ with non-empty local and domain parts.\"\"\"\n    parts = email.split('@')\n    return len(parts) == 2 and all(parts)\n```",
+  "assertions": [
+    {
+      "text": "assert",
+      "type": "contains"
+    },
+    {
+      "text": "inline_snapshot",
+      "type": "not_contains"
+    },
+    {
+      "text": "snapshot",
+      "type": "not_contains"
+    },
+    {
+      "text": "Uses plain assert statements or pytest parametrize for this simple boolean function \u2014 does NOT use inline-snapshot, which would be overkill for True/False returns",
+      "type": "llm"
+    },
+    {
+      "text": "Tests both valid and invalid email inputs covering edge cases (no @, multiple @, empty parts)",
+      "type": "llm"
+    }
+  ]
+}

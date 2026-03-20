@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "writing-modern-python", "runs": [{"id": "stripe-webhook-unions-with_skill", "prompt": "I need a pydantic model for our API - it's a webhook payload from Stripe. Has an event type (like 'invoice.paid', 'charge.failed' etc), a timestamp, an amount in cents, a currency code, and a nested customer object with id, email, and optional name. The event type should determine the shape of the data field - invoice events have line_items, charge events have a payment_method. Write the models.", "eval_id": 1, "outputs": [{"name": "models.py", "type": "text", "content": "from __future__ import annotations\n\nfrom datetime import datetime\nfrom typing import Annotated, Literal, Union\n\nfrom pydantic import BaseModel, ConfigDict, Field\n\n# ---------------------------------------------------------------------------\n# Reusable constrained types\n# ---------------------------------------------------------------------------\n\nAmountCents = Annotated[int, Field(ge=0, description=\"Amount in cents\")]\nCurrencyCode = Annotated[str, Field(min_length=3, max_length=3, description=\"ISO 4217 currency code\")]\nNonEmptyStr = Annotated[str, Field(min_length=1)]\n\n# ---------------------------------------------------------------------------\n# Nested objects\n# ---------------------------------------------------------------------------\n\n\nclass Customer(BaseModel):\n    model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\")\n\n    id: NonEmptyStr\n    email: NonEmptyStr\n    name: str | None = None\n\n\nclass LineItem(BaseModel):\n    model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\")\n\n    description: NonEmptyStr\n    amount: AmountCents\n    quantity: int = Field(gt=0)\n\n\n# ---------------------------------------------------------------------------\n# Discriminated event data shapes\n# ---------------------------------------------------------------------------\n\n\nclass InvoiceData(BaseModel):\n    model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\")\n\n    type: Literal[\"invoice\"]\n    line_items: list[LineItem]\n\n\nclass ChargeData(BaseModel):\n    model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\")\n\n    type: Literal[\"charge\"]\n    payment_method: NonEmptyStr\n\n\n# The discriminated union \u2014 O(1) dispatch on the `type` field\nEventData = Annotated[Union[InvoiceData, ChargeData], Field(discriminator=\"type\")]\n\n# ---------------------------------------------------------------------------\n# Top-level webhook payload\n# ---------------------------------------------------------------------------\n\n# Stripe event types are dot-separated \"<object>.<action>\" strings.\n# We derive the data discriminator value from the object prefix so callers\n# never have to duplicate that mapping.\n\n_EVENT_TYPE_TO_DATA_TYPE: dict[str, str] = {\n    \"invoice\": \"invoice\",\n    \"charge\": \"charge\",\n}\n\n\nclass StripeWebhookPayload(BaseModel):\n    model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\")\n\n    event_type: NonEmptyStr = Field(\n        description=\"Stripe event type, e.g. 'invoice.paid', 'charge.failed'\"\n    )\n    timestamp: datetime\n    amount: AmountCents\n    currency: CurrencyCode\n    customer: Customer\n    data: EventData\n"}], "grading": {"run_id": "stripe-webhook-unions-with_skill", "expectations": [{"text": "Uses discriminated union with Field(discriminator=...) for event type polymorphism", "passed": true, "evidence": "Line 57: EventData = Annotated[Union[InvoiceData, ChargeData], Field(discriminator='type')]"}, {"text": "Uses Literal types for event_type field values", "passed": true, "evidence": "Line 45: type: Literal['invoice'], Line 52: type: Literal['charge']"}, {"text": "Uses ConfigDict with strict=True", "passed": true, "evidence": "Line 22, 30, 43, 49, 74: ConfigDict(strict=True, frozen=True, extra='forbid') on all models"}, {"text": "Uses frozen=True or ConfigDict(frozen=True)", "passed": true, "evidence": "All models use ConfigDict(strict=True, frozen=True, extra='forbid')"}, {"text": "Does NOT use old v1 patterns like .dict(), .parse_obj(), Optional defaulting to None without explicit default", "passed": true, "evidence": "All v2 patterns. Line 26: 'name: str | None = None' with explicit default"}]}}, {"id": "stripe-webhook-unions-without_skill", "prompt": "I need a pydantic model for our API - it's a webhook payload from Stripe. Has an event type (like 'invoice.paid', 'charge.failed' etc), a timestamp, an amount in cents, a currency code, and a nested customer object with id, email, and optional name. The event type should determine the shape of the data field - invoice events have line_items, charge events have a payment_method. Write the models.", "eval_id": 1, "outputs": [{"name": "models.py", "type": "text", "content": "from __future__ import annotations\n\nfrom datetime import datetime\nfrom typing import Annotated, Literal, Union\nfrom pydantic import BaseModel, EmailStr, Field\n\n\nclass Customer(BaseModel):\n    id: str\n    email: EmailStr\n    name: str | None = None\n\n\nclass LineItem(BaseModel):\n    description: str\n    amount: int  # in cents\n    currency: str\n    quantity: int = 1\n\n\nclass InvoiceData(BaseModel):\n    line_items: list[LineItem]\n\n\nclass ChargeData(BaseModel):\n    payment_method: str\n\n\nclass InvoicePaidPayload(BaseModel):\n    event_type: Literal[\"invoice.paid\"]\n    timestamp: datetime\n    amount: int  # in cents\n    currency: str\n    customer: Customer\n    data: InvoiceData\n\n\nclass InvoicePaymentFailedPayload(BaseModel):\n    event_type: Literal[\"invoice.payment_failed\"]\n    timestamp: datetime\n    amount: int  # in cents\n    currency: str\n    customer: Customer\n    data: InvoiceData\n\n\nclass ChargeSucceededPayload(BaseModel):\n    event_type: Literal[\"charge.succeeded\"]\n    timestamp: datetime\n    amount: int  # in cents\n    currency: str\n    customer: Customer\n    data: ChargeData\n\n\nclass ChargeFailedPayload(BaseModel):\n    event_type: Literal[\"charge.failed\"]\n    timestamp: datetime\n    amount: int  # in cents\n    currency: str\n    customer: Customer\n    data: ChargeData\n\n\nStripeWebhookPayload = Annotated[\n    Union[\n        InvoicePaidPayload,\n        InvoicePaymentFailedPayload,\n        ChargeSucceededPayload,\n        ChargeFailedPayload,\n    ],\n    Field(discriminator=\"event_type\"),\n]\n\n\nclass StripeWebhookEvent(BaseModel):\n    \"\"\"Top-level wrapper for parsing an incoming Stripe webhook event.\"\"\"\n\n    payload: StripeWebhookPayload = Field(discriminator=\"event_type\")\n\n    model_config = {\"populate_by_name\": True}\n\n    @classmethod\n    def from_payload(cls, data: dict) -> StripeWebhookPayload:\n        \"\"\"Parse a raw webhook payload dict directly into the correct typed model.\"\"\"\n        return cls.model_validate({\"payload\": data}).payload\n"}], "grading": {"run_id": "stripe-webhook-unions-without_skill", "expectations": [{"text": "Uses discriminated union with Field(discriminator=...) for event type polymorphism", "passed": true, "evidence": "Line 72: Field(discriminator='event_type'), Line 79: Field(discriminator='event_type')"}, {"text": "Uses Literal types for event_type field values", "passed": true, "evidence": "Lines 30, 39, 48, 57: Literal['invoice.paid'], Literal['invoice.payment_failed'], etc."}, {"text": "Uses ConfigDict with strict=True", "passed": false, "evidence": "No ConfigDict on any model. Only model_config = {'populate_by_name': True} on line 81"}, {"text": "Uses frozen=True or ConfigDict(frozen=True)", "passed": false, "evidence": "No frozen=True on any model"}, {"text": "Does NOT use old v1 patterns like .dict(), .parse_obj(), Optional defaulting to None without explicit default", "passed": true, "evidence": "Uses v2 patterns: model_validate on line 86, str | None = None on line 11"}]}}, {"id": "patch-update-pattern-with_skill", "prompt": "I'm building a FastAPI endpoint that accepts partial updates to a user profile (PATCH). The user has name, email, bio, avatar_url, and settings (a nested object with theme and notifications_enabled). Write me the pydantic models for the request and show how to get only the fields that were actually sent.", "eval_id": 2, "outputs": [{"name": "models.py", "type": "text", "content": "from __future__ import annotations\n\nfrom typing import Annotated\n\nfrom pydantic import BaseModel, ConfigDict, Field\n\n\n# Reusable constrained types\nNonEmptyStr = Annotated[str, Field(min_length=1)]\nEmail = Annotated[str, Field(pattern=r\"^[\\w.-]+@[\\w.-]+\\.\\w+$\")]\nHttpUrl = Annotated[str, Field(pattern=r\"^https?://\")]\n\n\nclass UserSettingsPatch(BaseModel):\n    \"\"\"Partial update model for nested user settings.\"\"\"\n\n    model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\")\n\n    theme: str | None = None\n    notifications_enabled: bool | None = None\n\n\nclass UserProfilePatch(BaseModel):\n    \"\"\"Partial update model for user profile (PATCH).\n\n    All fields are optional. Use model_fields_set or model_dump(exclude_unset=True)\n    to distinguish fields the caller explicitly sent from fields that are absent.\n    \"\"\"\n\n    model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\")\n\n    name: NonEmptyStr | None = None\n    email: Email | None = None\n    bio: str | None = None\n    avatar_url: HttpUrl | None = None\n    settings: UserSettingsPatch | None = None\n\n\ndef get_patch_fields(patch: UserProfilePatch) -> dict:\n    \"\"\"Return only the fields explicitly included in the PATCH request.\n\n    Uses exclude_unset=True so that fields absent from the request body are\n    omitted entirely \u2014 a field set to null is kept (intentional clear),\n    while a field never sent is dropped (no-op for that column).\n\n    For nested settings, the same logic applies: only sub-fields the caller\n    sent are included, so you never accidentally overwrite a setting the\n    client didn't touch.\n    \"\"\"\n    dumped = patch.model_dump(exclude_unset=True)\n\n    # If settings was included, also exclude unset sub-fields within it\n    if \"settings\" in dumped and patch.settings is not None:\n        dumped[\"settings\"] = patch.settings.model_dump(exclude_unset=True)\n\n    return dumped\n\n\n# ---------------------------------------------------------------------------\n# Usage example (not part of the production path \u2014 illustrative only)\n# ---------------------------------------------------------------------------\nif __name__ == \"__main__\":\n    import json\n\n    # Simulate a PATCH body that only touches name and one settings sub-field\n    raw_body = '{\"name\": \"Alice\", \"settings\": {\"theme\": \"dark\"}}'\n\n    patch = UserProfilePatch.model_validate_json(raw_body)\n\n    print(\"Fields set by the caller:\", patch.model_fields_set)\n    # Fields set by the caller: {'name', 'settings'}\n\n    updates = get_patch_fields(patch)\n    print(\"Fields to apply to DB:\", json.dumps(updates, indent=2))\n    # {\n    #   \"name\": \"Alice\",\n    #   \"settings\": {\n    #     \"theme\": \"dark\"\n    #   }\n    # }\n    # Note: email, bio, avatar_url are absent \u2014 they won't be touched.\n    # Note: notifications_enabled is absent inside settings \u2014 it won't be touched either.\n"}], "grading": {"run_id": "patch-update-pattern-with_skill", "expectations": [{"text": "Uses model_dump(exclude_unset=True) to get only sent fields", "passed": true, "evidence": "Line 50: patch.model_dump(exclude_unset=True)"}, {"text": "Has a separate update/patch model where fields are optional", "passed": true, "evidence": "UserProfilePatch model on line 23 with all fields as T | None = None"}, {"text": "Does NOT use exclude_none=True as the PATCH mechanism (exclude_unset is correct)", "passed": true, "evidence": "Uses exclude_unset=True, not exclude_none=True"}, {"text": "Uses model_validate or proper v2 methods, not v1 patterns", "passed": true, "evidence": "Line 68: UserProfilePatch.model_validate_json(raw_body)"}]}}, {"id": "patch-update-pattern-without_skill", "prompt": "I'm building a FastAPI endpoint that accepts partial updates to a user profile (PATCH). The user has name, email, bio, avatar_url, and settings (a nested object with theme and notifications_enabled). Write me the pydantic models for the request and show how to get only the fields that were actually sent.", "eval_id": 2, "outputs": [{"name": "models.py", "type": "text", "content": "\"\"\"\nPydantic models for partial PATCH updates to a user profile.\n\nThe key pattern: all fields are Optional with a default of None so that\nclients can omit any field they don't want to change.  After validation,\nmodel_fields_set tells you exactly which fields were present in the\nincoming JSON, so you can apply only those to the stored record.\n\"\"\"\n\nfrom __future__ import annotations\n\nfrom typing import Any\n\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel, EmailStr, HttpUrl\n\n\n# ---------------------------------------------------------------------------\n# Nested settings model\n# ---------------------------------------------------------------------------\n\nclass UserSettingsPatch(BaseModel):\n    \"\"\"Partial update payload for the nested settings object.\"\"\"\n\n    theme: str | None = None\n    notifications_enabled: bool | None = None\n\n\n# ---------------------------------------------------------------------------\n# Top-level patch request model\n# ---------------------------------------------------------------------------\n\nclass UserProfilePatch(BaseModel):\n    \"\"\"\n    All fields are optional so clients only need to send what they want\n    to change.  Fields that are absent from the JSON body are NOT included\n    in model_fields_set, which lets the endpoint distinguish \"not provided\"\n    from \"explicitly set to None\".\n    \"\"\"\n\n    name: str | None = None\n    email: EmailStr | None = None\n    bio: str | None = None\n    avatar_url: HttpUrl | None = None\n    settings: UserSettingsPatch | None = None\n\n\n# ---------------------------------------------------------------------------\n# Helper: extract only the fields that were actually sent\n# ---------------------------------------------------------------------------\n\ndef get_patch_data(patch: UserProfilePatch) -> dict[str, Any]:\n    \"\"\"\n    Return a dict containing only the fields present in the request body.\n\n    Uses model_fields_set (populated by Pydantic during validation) so that\n    fields the client simply omitted are not included \u2014 even if their value\n    would happen to be None.\n\n    For nested models (e.g. settings) the same logic is applied recursively,\n    so a partial settings update doesn't silently wipe fields the client\n    didn't mention.\n    \"\"\"\n    result: dict[str, Any] = {}\n\n    for field_name in patch.model_fields_set:\n        value = getattr(patch, field_name)\n\n        # Recurse into nested patch models so we get their sent-fields too.\n        if isinstance(value, BaseModel):\n            result[field_name] = get_patch_data(value)  # type: ignore[arg-type]\n        else:\n            result[field_name] = value\n\n    return result\n\n\n# ---------------------------------------------------------------------------\n# FastAPI application with the PATCH endpoint\n# ---------------------------------------------------------------------------\n\napp = FastAPI()\n\n# Simulated database record \u2014 replace with a real DB call in production.\n_fake_db: dict[str, Any] = {\n    \"user_123\": {\n        \"name\": \"Alice\",\n        \"email\": \"alice@example.com\",\n        \"bio\": \"Software engineer\",\n        \"avatar_url\": \"https://example.com/alice.png\",\n        \"settings\": {\n            \"theme\": \"light\",\n            \"notifications_enabled\": True,\n        },\n    }\n}\n\n\n@app.patch(\"/users/{user_id}\", response_model=dict)\nasync def patch_user(user_id: str, patch: UserProfilePatch) -> dict[str, Any]:\n    \"\"\"\n    Partially update a user profile.\n\n    Only the fields present in the request body are applied; everything\n    else is left untouched.\n    \"\"\"\n    if user_id not in _fake_db:\n        from fastapi import HTTPException\n        raise HTTPException(status_code=404, detail=\"User not found\")\n\n    stored = _fake_db[user_id]\n    updates = get_patch_data(patch)\n\n    # Merge top-level fields.\n    for key, value in updates.items():\n        if key == \"settings\" and isinstance(value, dict):\n            # Deep-merge the settings sub-object so only sent keys change.\n            stored.setdefault(\"settings\", {}).update(value)\n        else:\n            # Convert Pydantic special types (HttpUrl, EmailStr) to plain str.\n            stored[key] = str(value) if not isinstance(value, (str, int, float, bool, type(None))) else value\n\n    return stored\n\n\n# ---------------------------------------------------------------------------\n# Usage demo (run directly: python models.py)\n# ---------------------------------------------------------------------------\n\nif __name__ == \"__main__\":\n    import json\n\n    # Simulate a request that only updates name and the theme setting.\n    raw_payload = {\n        \"name\": \"Alice Smith\",\n        \"settings\": {\n            \"theme\": \"dark\",\n            # notifications_enabled intentionally omitted\n        },\n    }\n\n    patch = UserProfilePatch.model_validate(raw_payload)\n\n    print(\"Fields sent by the client:\", patch.model_fields_set)\n    # \u2192 Fields sent by the client: {'name', 'settings'}\n\n    if patch.settings:\n        print(\"Settings fields sent:\", patch.settings.model_fields_set)\n        # \u2192 Settings fields sent: {'theme'}\n\n    patch_data = get_patch_data(patch)\n    print(\"Data to apply to the DB:\", json.dumps(patch_data, indent=2))\n    # \u2192 {\n    #     \"name\": \"Alice Smith\",\n    #     \"settings\": {\n    #       \"theme\": \"dark\"\n    #     }\n    #   }\n"}], "grading": {"run_id": "patch-update-pattern-without_skill", "expectations": [{"text": "Uses model_dump(exclude_unset=True) to get only sent fields", "passed": false, "evidence": "Uses manual iteration over model_fields_set (lines 66-75) instead of model_dump(exclude_unset=True). Functionally similar but not the idiomatic v2 pattern."}, {"text": "Has a separate update/patch model where fields are optional", "passed": true, "evidence": "UserProfilePatch on line 33 with all fields as T | None = None"}, {"text": "Does NOT use exclude_none=True as the PATCH mechanism (exclude_unset is correct)", "passed": true, "evidence": "Uses model_fields_set, not exclude_none. Correct mechanism."}, {"text": "Uses model_validate or proper v2 methods, not v1 patterns", "passed": true, "evidence": "Line 142: UserProfilePatch.model_validate(raw_payload)"}]}}, {"id": "reusable-constrained-types-with_skill", "prompt": "write a reusable set of constrained types for our codebase - we need: positive integers, non-empty strings, email addresses, money amounts (2 decimal places, positive), percentage (0-100), and a URL that must be https. Show how to use them in a model.", "eval_id": 3, "outputs": [{"name": "types.py", "type": "text", "content": "\"\"\"Reusable constrained types for cross-codebase use with Pydantic v2.\"\"\"\n\nfrom decimal import Decimal\nfrom typing import Annotated\n\nfrom pydantic import AfterValidator, BaseModel, ConfigDict, Field, HttpUrl\n\n\n# --- Constrained type definitions ---\n\nPositiveInt = Annotated[int, Field(gt=0)]\n\nNonEmptyStr = Annotated[str, Field(min_length=1)]\n\nEmail = Annotated[\n    str,\n    Field(pattern=r\"^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$\"),\n]\n\n# Positive decimal with exactly 2 decimal places.\n# Uses Decimal for precision \u2014 no floating-point rounding errors.\nMoneyAmount = Annotated[\n    Decimal,\n    Field(gt=0, decimal_places=2),\n]\n\n# 0\u2013100 inclusive, supports fractional percentages (e.g. 99.9).\nPercentage = Annotated[float, Field(ge=0.0, le=100.0)]\n\n\ndef _require_https(url: HttpUrl) -> HttpUrl:\n    if url.scheme != \"https\":\n        raise ValueError(f\"URL must use https, got: {url.scheme}\")\n    return url\n\n\n# HttpUrl already validates URL structure; the AfterValidator enforces https.\nHttpsUrl = Annotated[HttpUrl, AfterValidator(_require_https)]\n\n\n# --- Example model using the constrained types ---\n\nclass ProductListing(BaseModel):\n    \"\"\"An e-commerce product listing demonstrating all constrained types.\"\"\"\n\n    model_config = ConfigDict(strict=True, frozen=True)\n\n    id: PositiveInt\n    name: NonEmptyStr\n    seller_email: Email\n    price: MoneyAmount\n    discount_pct: Percentage\n    product_url: HttpsUrl\n\n\n# --- Usage ---\n\nif __name__ == \"__main__\":\n    listing = ProductListing(\n        id=42,\n        name=\"Ergonomic Keyboard\",\n        seller_email=\"seller@example.com\",\n        price=Decimal(\"149.99\"),\n        discount_pct=12.5,\n        product_url=\"https://shop.example.com/keyboards/ergonomic\",  # type: ignore[arg-type]\n    )\n    print(listing.model_dump())\n"}], "grading": {"run_id": "reusable-constrained-types-with_skill", "expectations": [{"text": "Uses Annotated[type, ...] pattern for ALL constrained types, not custom classes", "passed": true, "evidence": "All 6 types use Annotated: PositiveInt, NonEmptyStr, Email, MoneyAmount, Percentage, HttpsUrl"}, {"text": "Types are defined as reusable aliases (e.g. PositiveInt = Annotated[int, Field(gt=0)])", "passed": true, "evidence": "Lines 11, 13, 15, 22, 28, 38: all defined as module-level type aliases"}, {"text": "Money type enforces exactly 2 decimal places and positive value", "passed": true, "evidence": "Line 24: Field(gt=0, decimal_places=2) on Decimal base type"}, {"text": "Types are demonstrated in a model to show reuse", "passed": true, "evidence": "ProductListing model on line 43 uses all 6 constrained types"}]}}, {"id": "reusable-constrained-types-without_skill", "prompt": "write a reusable set of constrained types for our codebase - we need: positive integers, non-empty strings, email addresses, money amounts (2 decimal places, positive), percentage (0-100), and a URL that must be https. Show how to use them in a model.", "eval_id": 3, "outputs": [{"name": "types.py", "type": "text", "content": "\"\"\"\nReusable constrained types for Pydantic models.\n\nEach type is defined as an Annotated alias combining a base type with\none or more validator/constraint annotations. This keeps validation\nlogic co-located with the type definition and makes every type\nreusable across any number of models just by importing it.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport re\nfrom decimal import Decimal\nfrom typing import Annotated\n\nfrom pydantic import (\n    AfterValidator,\n    BaseModel,\n    Field,\n    HttpUrl,\n    field_validator,\n)\nfrom pydantic.functional_validators import BeforeValidator\n\n\n# ---------------------------------------------------------------------------\n# Primitive constrained types\n# ---------------------------------------------------------------------------\n\n# A whole number that is strictly greater than zero.\nPositiveInt = Annotated[int, Field(gt=0)]\n\n# A string that contains at least one character after stripping whitespace.\nNonEmptyString = Annotated[str, Field(min_length=1), AfterValidator(str.strip)]\n\n\ndef _validate_email(value: str) -> str:\n    \"\"\"Minimal RFC-5321-style e-mail validator (no external library required).\"\"\"\n    pattern = r\"^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$\"\n    if not re.fullmatch(pattern, value):\n        raise ValueError(f\"{value!r} is not a valid email address\")\n    return value.lower()\n\n\n# An e-mail address (case-normalised to lowercase).\nEmailAddress = Annotated[str, AfterValidator(_validate_email)]\n\n\ndef _validate_money(value: Decimal) -> Decimal:\n    \"\"\"Ensure the value is positive and has at most two decimal places.\"\"\"\n    if value <= 0:\n        raise ValueError(\"Money amount must be positive\")\n    # quantize to 2dp and compare \u2013 if they differ the input had more places.\n    quantized = value.quantize(Decimal(\"0.01\"))\n    if quantized != value:\n        raise ValueError(\"Money amount must have at most 2 decimal places\")\n    return quantized\n\n\n# A positive monetary amount with exactly two decimal places.\n# Accept str/float/int as input so callers can write MoneyAmount = \"9.99\".\nMoneyAmount = Annotated[\n    Decimal,\n    BeforeValidator(lambda v: Decimal(str(v)) if not isinstance(v, Decimal) else v),\n    AfterValidator(_validate_money),\n]\n\n\ndef _validate_percentage(value: float) -> float:\n    if not (0.0 <= value <= 100.0):\n        raise ValueError(f\"Percentage must be between 0 and 100, got {value}\")\n    return value\n\n\n# A percentage value in the closed interval [0, 100].\nPercentage = Annotated[float, AfterValidator(_validate_percentage)]\n\n\ndef _validate_https_url(value: str) -> str:\n    \"\"\"Reject any URL whose scheme is not https.\"\"\"\n    if not value.startswith(\"https://\"):\n        raise ValueError(f\"URL must use the https scheme, got: {value!r}\")\n    return value\n\n\n# An HTTP URL that is restricted to the https scheme.\n# Pydantic's HttpUrl already validates structure; we add the scheme check.\nHttpsUrl = Annotated[HttpUrl, AfterValidator(lambda v: _validate_https_url(str(v)))]\n\n\n# ---------------------------------------------------------------------------\n# Example model that uses all constrained types\n# ---------------------------------------------------------------------------\n\nclass ProductListing(BaseModel):\n    \"\"\"Demonstrates every constrained type defined above.\"\"\"\n\n    id: PositiveInt\n    name: NonEmptyString\n    seller_email: EmailAddress\n    price: MoneyAmount\n    discount_percent: Percentage\n    product_url: HttpsUrl\n\n    # Optional: show that model_config can tighten things further\n    model_config = {\"str_strip_whitespace\": True}\n\n\n# ---------------------------------------------------------------------------\n# Quick smoke-test / usage demo\n# ---------------------------------------------------------------------------\n\nif __name__ == \"__main__\":\n    # --- valid listing ---\n    listing = ProductListing(\n        id=42,\n        name=\"Wireless Headphones\",\n        seller_email=\"Seller@Example.COM\",   # will be lowercased\n        price=\"149.99\",                       # str accepted, converted to Decimal\n        discount_percent=15.0,\n        product_url=\"https://shop.example.com/headphones\",\n    )\n    print(\"Valid listing:\")\n    print(listing.model_dump())\n    print()\n\n    # --- demonstrate validation errors ---\n    from pydantic import ValidationError\n\n    bad_cases: list[tuple[str, dict]] = [\n        (\n            \"negative id\",\n            dict(\n                id=-1,\n                name=\"Item\",\n                seller_email=\"a@b.com\",\n                price=\"10.00\",\n                discount_percent=0,\n                product_url=\"https://example.com\",\n            ),\n        ),\n        (\n            \"empty name\",\n            dict(\n                id=1,\n                name=\"   \",\n                seller_email=\"a@b.com\",\n                price=\"10.00\",\n                discount_percent=0,\n                product_url=\"https://example.com\",\n            ),\n        ),\n        (\n            \"bad email\",\n            dict(\n                id=1,\n                name=\"Item\",\n                seller_email=\"not-an-email\",\n                price=\"10.00\",\n                discount_percent=0,\n                product_url=\"https://example.com\",\n            ),\n        ),\n        (\n            \"too many decimal places\",\n            dict(\n                id=1,\n                name=\"Item\",\n                seller_email=\"a@b.com\",\n                price=\"10.999\",\n                discount_percent=0,\n                product_url=\"https://example.com\",\n            ),\n        ),\n        (\n            \"percentage > 100\",\n            dict(\n                id=1,\n                name=\"Item\",\n                seller_email=\"a@b.com\",\n                price=\"10.00\",\n                discount_percent=101,\n                product_url=\"https://example.com\",\n            ),\n        ),\n        (\n            \"http not https\",\n            dict(\n                id=1,\n                name=\"Item\",\n                seller_email=\"a@b.com\",\n                price=\"10.00\",\n                discount_percent=0,\n                product_url=\"http://example.com\",\n            ),\n        ),\n    ]\n\n    for label, data in bad_cases:\n        try:\n            ProductListing(**data)\n            print(f\"UNEXPECTED PASS for: {label}\")\n        except ValidationError as exc:\n            errors = [e[\"msg\"] for e in exc.errors()]\n            print(f\"Expected error ({label}): {errors}\")\n"}], "grading": {"run_id": "reusable-constrained-types-without_skill", "expectations": [{"text": "Uses Annotated[type, ...] pattern for ALL constrained types, not custom classes", "passed": true, "evidence": "All types use Annotated: PositiveInt (line 31), NonEmptyString (line 34), EmailAddress (line 46), MoneyAmount (line 62), Percentage (line 76), HttpsUrl (line 88)"}, {"text": "Types are defined as reusable aliases (e.g. PositiveInt = Annotated[int, Field(gt=0)])", "passed": true, "evidence": "All defined as module-level type aliases"}, {"text": "Money type enforces exactly 2 decimal places and positive value", "passed": true, "evidence": "Lines 49-57: manual AfterValidator checks value > 0 and quantizes to 2dp"}, {"text": "Types are demonstrated in a model to show reuse", "passed": true, "evidence": "ProductListing on line 95 uses all 6 types"}]}}, {"id": "typeadapter-hot-loop-with_skill", "prompt": "I have a function that receives JSON bytes from a message queue and needs to validate it as a list of sensor readings. Each reading has sensor_id (str), value (float), timestamp (datetime), and optional metadata dict. This is in a hot loop processing thousands of messages per second. Write the validation code.", "eval_id": 4, "outputs": [{"name": "validation.py", "type": "text", "content": "from datetime import datetime\nfrom typing import Annotated\n\nfrom pydantic import BaseModel, ConfigDict, Field, TypeAdapter\n\nNonEmptyStr = Annotated[str, Field(min_length=1)]\n\n\nclass SensorReading(BaseModel):\n    model_config = ConfigDict(strict=True, frozen=True)\n\n    sensor_id: NonEmptyStr\n    value: float\n    timestamp: datetime\n    metadata: dict[str, object] | None = None\n\n\n# TypeAdapter is built once at module level \u2014 schema compilation is expensive\n# and must never happen inside a hot loop.\n_readings_adapter = TypeAdapter(list[SensorReading])\n\n\ndef validate_readings(raw: bytes) -> list[SensorReading]:\n    \"\"\"Parse and validate a JSON message containing a list of sensor readings.\n\n    Uses TypeAdapter.validate_json() for a single Rust-level parse+validate pass,\n    avoiding the overhead of json.loads() followed by a separate validation step.\n    Raises ValidationError on malformed input.\n    \"\"\"\n    return _readings_adapter.validate_json(raw)\n"}], "grading": {"run_id": "typeadapter-hot-loop-with_skill", "expectations": [{"text": "Uses TypeAdapter created at module level, NOT inside the function or loop", "passed": true, "evidence": "Line 20: _readings_adapter = TypeAdapter(list[SensorReading]) at module level"}, {"text": "Uses validate_json() for direct JSON parsing instead of json.loads() + validate_python()", "passed": true, "evidence": "Line 30: return _readings_adapter.validate_json(raw)"}, {"text": "Does NOT instantiate TypeAdapter inside a loop or per-call", "passed": true, "evidence": "TypeAdapter created once at module level, function only calls validate_json()"}]}}, {"id": "typeadapter-hot-loop-without_skill", "prompt": "I have a function that receives JSON bytes from a message queue and needs to validate it as a list of sensor readings. Each reading has sensor_id (str), value (float), timestamp (datetime), and optional metadata dict. This is in a hot loop processing thousands of messages per second. Write the validation code.", "eval_id": 4, "outputs": [{"name": "validation.py", "type": "text", "content": "\"\"\"\nValidation of sensor reading messages from a message queue.\n\nOptimized for high-throughput hot loops: uses a module-level TypeAdapter\ninstance to avoid repeated model rebuilding on every call.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\nfrom datetime import datetime\nfrom typing import Any\n\nfrom pydantic import BaseModel, TypeAdapter\n\n\nclass SensorReading(BaseModel):\n    sensor_id: str\n    value: float\n    timestamp: datetime\n    metadata: dict[str, Any] | None = None\n\n\n# Build the TypeAdapter once at module level so it is not re-created on each\n# call.  TypeAdapter construction is expensive; reusing the same instance is\n# the key optimisation for hot-loop scenarios.\n_readings_adapter: TypeAdapter[list[SensorReading]] = TypeAdapter(\n    list[SensorReading]\n)\n\n\ndef validate_sensor_readings(raw: bytes) -> list[SensorReading]:\n    \"\"\"Parse and validate a JSON-encoded list of sensor readings.\n\n    Parameters\n    ----------\n    raw:\n        Raw bytes received from the message queue.  Must be a JSON array\n        whose elements each conform to the SensorReading schema.\n\n    Returns\n    -------\n    list[SensorReading]\n        Validated list of sensor reading objects.\n\n    Raises\n    ------\n    json.JSONDecodeError\n        If *raw* is not valid JSON.\n    pydantic.ValidationError\n        If the decoded data does not match the expected schema.\n    \"\"\"\n    # validate_json accepts bytes directly, skipping an intermediate Python\n    # object and avoiding a redundant json.loads() call.\n    return _readings_adapter.validate_json(raw)\n\n\n# ---------------------------------------------------------------------------\n# Example usage / quick smoke-test\n# ---------------------------------------------------------------------------\nif __name__ == \"__main__\":\n    sample: bytes = json.dumps(\n        [\n            {\n                \"sensor_id\": \"temp-01\",\n                \"value\": 23.4,\n                \"timestamp\": \"2026-03-20T12:00:00Z\",\n                \"metadata\": {\"unit\": \"celsius\", \"location\": \"room-A\"},\n            },\n            {\n                \"sensor_id\": \"pressure-07\",\n                \"value\": 1013.25,\n                \"timestamp\": \"2026-03-20T12:00:01Z\",\n            },\n        ]\n    ).encode()\n\n    readings = validate_sensor_readings(sample)\n    for r in readings:\n        print(r)\n"}], "grading": {"run_id": "typeadapter-hot-loop-without_skill", "expectations": [{"text": "Uses TypeAdapter created at module level, NOT inside the function or loop", "passed": true, "evidence": "Lines 27-29: _readings_adapter at module level"}, {"text": "Uses validate_json() for direct JSON parsing instead of json.loads() + validate_python()", "passed": true, "evidence": "Line 55: return _readings_adapter.validate_json(raw)"}, {"text": "Does NOT instantiate TypeAdapter inside a loop or per-call", "passed": true, "evidence": "TypeAdapter at module level, function only calls validate_json()"}]}}, {"id": "computed-fields-serialization-with_skill", "prompt": "I need a pydantic model for an API response that includes computed fields. It's a Product with name, price_cents (int), tax_rate (float), and quantity. I need computed price_dollars, tax_amount, and total. The product should be immutable after creation. Also add a custom serializer so price fields come out as formatted dollar strings in the JSON.", "eval_id": 5, "outputs": [{"name": "models.py", "type": "text", "content": "from functools import cached_property\nfrom typing import Annotated\n\nfrom pydantic import BaseModel, ConfigDict, Field, computed_field, field_serializer\n\nPositiveInt = Annotated[int, Field(gt=0)]\nNonEmptyStr = Annotated[str, Field(min_length=1)]\nPositiveFloat = Annotated[float, Field(gt=0)]\n\n\nclass Product(BaseModel):\n    model_config = ConfigDict(strict=True, frozen=True)\n\n    name: NonEmptyStr\n    price_cents: PositiveInt\n    tax_rate: PositiveFloat\n    quantity: PositiveInt\n\n    @computed_field\n    @cached_property\n    def price_dollars(self) -> float:\n        return self.price_cents / 100\n\n    @computed_field\n    @cached_property\n    def tax_amount(self) -> float:\n        return self.price_dollars * self.tax_rate\n\n    @computed_field\n    @cached_property\n    def total(self) -> float:\n        return (self.price_dollars + self.tax_amount) * self.quantity\n\n    @field_serializer(\"price_dollars\", \"tax_amount\", \"total\")\n    def serialize_as_dollars(self, v: float, _info) -> str:\n        return f\"${v:.2f}\"\n"}], "grading": {"run_id": "computed-fields-serialization-with_skill", "expectations": [{"text": "Uses @computed_field decorator with @property for derived fields", "passed": true, "evidence": "Lines 19-32: @computed_field with @cached_property (superior to @property for frozen models)"}, {"text": "Uses frozen=True (required for immutability, also enables @cached_property if used)", "passed": true, "evidence": "Line 12: ConfigDict(strict=True, frozen=True)"}, {"text": "Uses field_serializer or PlainSerializer for dollar formatting", "passed": true, "evidence": "Line 34: @field_serializer('price_dollars', 'tax_amount', 'total') \u2014 all three in one decorator"}, {"text": "Computed fields have explicit return type annotations", "passed": true, "evidence": "Lines 21, 25, 31: all have -> float return type annotations"}]}}, {"id": "computed-fields-serialization-without_skill", "prompt": "I need a pydantic model for an API response that includes computed fields. It's a Product with name, price_cents (int), tax_rate (float), and quantity. I need computed price_dollars, tax_amount, and total. The product should be immutable after creation. Also add a custom serializer so price fields come out as formatted dollar strings in the JSON.", "eval_id": 5, "outputs": [{"name": "models.py", "type": "text", "content": "from __future__ import annotations\n\nfrom pydantic import BaseModel, computed_field, field_serializer, model_config\n\n\nclass Product(BaseModel):\n    model_config = model_config(frozen=True)\n\n    name: str\n    price_cents: int\n    tax_rate: float\n    quantity: int\n\n    @computed_field\n    @property\n    def price_dollars(self) -> float:\n        return self.price_cents / 100\n\n    @computed_field\n    @property\n    def tax_amount(self) -> float:\n        return round(self.price_dollars * self.tax_rate * self.quantity, 2)\n\n    @computed_field\n    @property\n    def total(self) -> float:\n        return round(self.price_dollars * self.quantity + self.tax_amount, 2)\n\n    @field_serializer(\"price_dollars\")\n    def serialize_price_dollars(self, value: float) -> str:\n        return f\"${value:,.2f}\"\n\n    @field_serializer(\"tax_amount\")\n    def serialize_tax_amount(self, value: float) -> str:\n        return f\"${value:,.2f}\"\n\n    @field_serializer(\"total\")\n    def serialize_total(self, value: float) -> str:\n        return f\"${value:,.2f}\"\n\n\nif __name__ == \"__main__\":\n    product = Product(\n        name=\"Widget\",\n        price_cents=1999,\n        tax_rate=0.08,\n        quantity=3,\n    )\n\n    print(product.model_dump_json(indent=2))\n"}], "grading": {"run_id": "computed-fields-serialization-without_skill", "expectations": [{"text": "Uses @computed_field decorator with @property for derived fields", "passed": true, "evidence": "Lines 14-27: @computed_field with @property on all three fields"}, {"text": "Uses frozen=True (required for immutability, also enables @cached_property if used)", "passed": false, "evidence": "Line 7: model_config = model_config(frozen=True) \u2014 this is INVALID syntax. model_config is not callable; should be ConfigDict(frozen=True). This code would raise an error at import time."}, {"text": "Uses field_serializer or PlainSerializer for dollar formatting", "passed": true, "evidence": "Lines 29-39: three separate @field_serializer decorators for each field"}, {"text": "Computed fields have explicit return type annotations", "passed": true, "evidence": "Lines 16, 21, 26: all have -> float"}]}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"skill_name": "writing-modern-python", "iteration": 1, "evals": [{"eval_name": "stripe-webhook-unions", "with_skill": {"pass_rate": 1.0, "passed": 5, "total": 5, "tokens": 17780, "duration_seconds": 43.7}, "without_skill": {"pass_rate": 0.6, "passed": 3, "total": 5, "tokens": 10939, "duration_seconds": 23.4}, "delta": "+0.4 (skill adds strict=True, frozen=True, extra='forbid')"}, {"eval_name": "patch-update-pattern", "with_skill": {"pass_rate": 1.0, "passed": 4, "total": 4, "tokens": 17871, "duration_seconds": 52.0}, "without_skill": {"pass_rate": 0.75, "passed": 3, "total": 4, "tokens": 11655, "duration_seconds": 38.5}, "delta": "+0.25 (skill uses model_dump(exclude_unset=True) vs manual model_fields_set iteration)"}, {"eval_name": "reusable-constrained-types", "with_skill": {"pass_rate": 1.0, "passed": 4, "total": 4, "tokens": 17659, "duration_seconds": 41.4}, "without_skill": {"pass_rate": 1.0, "passed": 4, "total": 4, "tokens": 12029, "duration_seconds": 39.2}, "delta": "0.0 (baseline also uses Annotated pattern; skill version adds strict/frozen ConfigDict)"}, {"eval_name": "typeadapter-hot-loop", "with_skill": {"pass_rate": 1.0, "passed": 3, "total": 3, "tokens": 17577, "duration_seconds": 38.9}, "without_skill": {"pass_rate": 1.0, "passed": 3, "total": 3, "tokens": 10970, "duration_seconds": 25.2}, "delta": "0.0 (baseline already knows TypeAdapter + validate_json pattern)"}, {"eval_name": "computed-fields-serialization", "with_skill": {"pass_rate": 1.0, "passed": 4, "total": 4, "tokens": 17514, "duration_seconds": 39.2}, "without_skill": {"pass_rate": 0.75, "passed": 3, "total": 4, "tokens": 10782, "duration_seconds": 18.5}, "delta": "+0.25 (baseline used invalid model_config() syntax instead of ConfigDict; skill version also uses cached_property and grouped serializer)"}], "summary": {"with_skill": {"overall_pass_rate": 1.0, "passed": 20, "total": 20, "avg_tokens": 17680, "avg_duration_seconds": 43.0}, "without_skill": {"overall_pass_rate": 0.8, "passed": 16, "total": 20, "avg_tokens": 11275, "avg_duration_seconds": 29.0}, "delta_pass_rate": "+0.20", "delta_tokens": "+6405 (57% more tokens due to reading skill + reference files)", "delta_duration": "+14s avg (skill reading overhead)"}, "analysis": {"discriminating_assertions": ["ConfigDict with strict=True \u2014 passed with skill, failed without in 2/5 evals", "frozen=True \u2014 passed with skill, failed without in 2/5 evals", "model_dump(exclude_unset=True) \u2014 skill used idiomatic pattern, baseline used manual iteration"], "non_discriminating_assertions": ["discriminated unions \u2014 baseline already knows this pattern", "Literal types \u2014 baseline already knows this pattern", "TypeAdapter at module level \u2014 baseline already knows this pattern", "validate_json() \u2014 baseline already knows this pattern", "Annotated constrained types \u2014 baseline already knows this pattern", "@computed_field \u2014 baseline already knows this pattern"], "key_finding": "The skill's main value-add is enforcing ConfigDict(strict=True, frozen=True, extra='forbid') as a default for API models, and using model_dump(exclude_unset=True) for PATCH. Most other Pydantic v2 patterns (discriminated unions, TypeAdapter, Annotated types, computed fields) are already in the model's baseline knowledge. The skill also prevented a syntax error (model_config() vs ConfigDict()) in eval 5."}}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

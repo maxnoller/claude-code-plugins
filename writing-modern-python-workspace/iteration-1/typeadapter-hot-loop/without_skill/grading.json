@@ -1,0 +1,20 @@
+{
+  "run_id": "typeadapter-hot-loop-without_skill",
+  "expectations": [
+    {
+      "text": "Uses TypeAdapter created at module level, NOT inside the function or loop",
+      "passed": true,
+      "evidence": "Lines 27-29: _readings_adapter at module level"
+    },
+    {
+      "text": "Uses validate_json() for direct JSON parsing instead of json.loads() + validate_python()",
+      "passed": true,
+      "evidence": "Line 55: return _readings_adapter.validate_json(raw)"
+    },
+    {
+      "text": "Does NOT instantiate TypeAdapter inside a loop or per-call",
+      "passed": true,
+      "evidence": "TypeAdapter at module level, function only calls validate_json()"
+    }
+  ]
+}

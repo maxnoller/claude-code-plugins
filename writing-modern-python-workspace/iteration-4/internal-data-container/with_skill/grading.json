@@ -1,0 +1,34 @@
+{
+  "expectations": [
+    {
+      "text": "dataclass",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response uses `@dataclass(frozen=True)` and explicitly recommends dataclass throughout"
+    },
+    {
+      "text": "Does NOT use Pydantic BaseModel for this internal-only data container",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response never uses Pydantic BaseModel; explicitly says Pydantic is unnecessary for internal data"
+    },
+    {
+      "text": "Uses dataclass, NamedTuple, or plain class instead",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response uses dataclass as the primary recommendation and mentions NamedTuple as an alternative"
+    },
+    {
+      "text": "Explains WHY Pydantic is unnecessary here (internal data, no trust boundary, own code is producer)",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response explicitly states 'Pydantic is for trust boundaries' and 'constructed internally from already-validated data' making runtime validation unnecessary overhead"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

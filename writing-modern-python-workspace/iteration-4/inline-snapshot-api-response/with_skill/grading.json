@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "snapshot",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'snapshot' in multiple places, including 'from inline_snapshot import snapshot' and 'assert result == snapshot({...})'"
+    },
+    {
+      "text": "inline_snapshot",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'from inline_snapshot import snapshot' and references 'inline-snapshot' package throughout"
+    },
+    {
+      "text": "assertEqual",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "The word 'assertEqual' does not appear anywhere in the response"
+    },
+    {
+      "text": "Uses inline-snapshot's snapshot() to capture the entire response dict so that any field change is automatically caught",
+      "type": "llm",
+      "passed": true,
+      "evidence": "The test uses `assert result == snapshot({...})` with all 13 fields, and the explanation explicitly states 'the dict shapes must match exactly' and that snapshot() catches added/changed fields"
+    },
+    {
+      "text": "Explains the inline-snapshot workflow: run pytest with a snapshot flag (--inline-snapshot=create, =fix, or =update) to initially populate snapshot values and update them when changes are intentional",
+      "type": "llm",
+      "passed": false,
+      "evidence": "Response only mentions '--inline-snapshot=fix' flag; it does not mention '--inline-snapshot=create' or '--inline-snapshot=update', so the full workflow with all three flags is not explained"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 1,
+    "total": 5,
+    "pass_rate": 0.8
+  }
+}

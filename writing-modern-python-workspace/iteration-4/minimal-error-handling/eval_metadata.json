@@ -1,0 +1,23 @@
+{
+  "eval_id": 19,
+  "eval_name": "minimal-error-handling",
+  "prompt": "Add comprehensive error handling and logging to this function:\n\n```python\ndef read_config(path: str) -> dict:\n    with open(path) as f:\n        return json.load(f)\n```\n\nI want it to be production-ready with proper error handling for every possible failure mode.",
+  "assertions": [
+    {
+      "text": "Does NOT add excessive try/except blocks, generic exception handlers, or error handling for scenarios that cannot realistically occur",
+      "type": "llm"
+    },
+    {
+      "text": "Handles only the real failure modes: FileNotFoundError and json.JSONDecodeError (and possibly PermissionError), without adding layers of abstraction or defensive code for impossible scenarios",
+      "type": "llm"
+    },
+    {
+      "text": "structlog",
+      "type": "contains"
+    },
+    {
+      "text": "Avoids over-engineering patterns like retry logic, fallback defaults, custom exception hierarchies, or multiple layers of wrapping for a simple file-read operation",
+      "type": "llm"
+    }
+  ]
+}

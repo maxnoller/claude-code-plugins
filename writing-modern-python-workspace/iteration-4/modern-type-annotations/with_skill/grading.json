@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "| None",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'User | None' and 'float | None = None'"
+    },
+    {
+      "text": "from typing import Optional",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Response only imports 'from collections.abc import Sequence' and 'from typing import Any' \u2014 no Optional import"
+    },
+    {
+      "text": "from typing import List",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "No 'from typing import List' appears in the response"
+    },
+    {
+      "text": "from typing import Dict",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "No 'from typing import Dict' appears in the response"
+    },
+    {
+      "text": "Uses modern Python union syntax (X | None) throughout instead of Optional[X]. Uses lowercase builtins (list[str], dict[str, Any]) instead of typing.List, typing.Dict.",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response uses 'User | None' and 'float | None', plus lowercase 'dict[str, Any]', 'list[str]', 'Sequence[str]' \u2014 no legacy typing imports"
+    },
+    {
+      "text": "Since data is internal (own code is producer), does NOT recommend adding Pydantic validation \u2014 uses plain type annotations only",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response explicitly states: 'No Pydantic here \u2014 these are internal functions with trusted data, so plain type hints are the right tool.'"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

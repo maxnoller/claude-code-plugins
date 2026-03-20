@@ -1,0 +1,34 @@
+{
+  "expectations": [
+    {
+      "text": "ghcr.io/astral-sh/uv",
+      "type": "contains",
+      "passed": true,
+      "evidence": "COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv appears in the Dockerfile"
+    },
+    {
+      "text": "uv sync",
+      "type": "contains",
+      "passed": true,
+      "evidence": "uv sync appears twice: RUN uv sync --frozen --no-install-project --no-dev and RUN uv sync --frozen --no-dev"
+    },
+    {
+      "text": "pip install",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "pip install does not appear anywhere in the response"
+    },
+    {
+      "text": "Uses a multi-stage or two-step COPY pattern: copies pyproject.toml and uv.lock first, syncs dependencies, then copies application code for optimal Docker layer caching",
+      "type": "llm",
+      "passed": true,
+      "evidence": "The Dockerfile explicitly copies pyproject.toml and uv.lock first (COPY pyproject.toml uv.lock ./), runs uv sync --frozen --no-install-project --no-dev, then copies all source code (COPY . .), and runs a second uv sync. The key decisions section explicitly explains this is for Docker layer caching."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "eval_id": 17,
+  "eval_name": "yappi-cpu-profiling",
+  "prompt": "I need to profile a CPU-bound data processing function that transforms a large pandas DataFrame. It's running in a synchronous script, no async involved. What profiler should I use?",
+  "assertions": [
+    {
+      "text": "yappi",
+      "type": "contains"
+    },
+    {
+      "text": "cpu",
+      "type": "contains"
+    },
+    {
+      "text": "Recommends yappi with cpu clock for CPU-bound synchronous work, or mentions py-spy/scalene as alternatives for line-level profiling",
+      "type": "llm"
+    },
+    {
+      "text": "Distinguishes between cpu clock (measures actual CPU time, ignoring I/O wait) and wall clock, explaining why cpu clock is appropriate for CPU-bound work",
+      "type": "llm"
+    }
+  ]
+}

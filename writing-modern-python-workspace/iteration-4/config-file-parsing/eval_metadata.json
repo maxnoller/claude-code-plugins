@@ -1,0 +1,31 @@
+{
+  "eval_id": 3,
+  "eval_name": "config-file-parsing",
+  "prompt": "I'm building a CLI tool that reads a YAML config file. The config has database connection params (host, port, dbname, username, password), a list of table names to sync, and optional retry settings (max_retries, backoff_factor). Write the config parsing code.",
+  "assertions": [
+    {
+      "text": "BaseModel",
+      "type": "contains"
+    },
+    {
+      "text": "strict=True",
+      "type": "contains"
+    },
+    {
+      "text": "frozen=True",
+      "type": "contains"
+    },
+    {
+      "text": "Chooses Pydantic for config parsing (external file = trust boundary)",
+      "type": "llm"
+    },
+    {
+      "text": "Uses ConfigDict with strict=True and frozen=True",
+      "type": "llm"
+    },
+    {
+      "text": "Does NOT overengineer \u2014 keeps models minimal for the actual config shape",
+      "type": "llm"
+    }
+  ]
+}

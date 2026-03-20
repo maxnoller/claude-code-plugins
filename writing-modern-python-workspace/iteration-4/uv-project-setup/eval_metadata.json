@@ -1,0 +1,35 @@
+{
+  "eval_id": 6,
+  "eval_name": "uv-project-setup",
+  "prompt": "Set up a new Python project with httpx and pydantic as deps, pytest and ruff for dev. Show me the commands and the resulting pyproject.toml.",
+  "assertions": [
+    {
+      "text": "uv init",
+      "type": "contains"
+    },
+    {
+      "text": "uv add",
+      "type": "contains"
+    },
+    {
+      "text": "pip install",
+      "type": "not_contains"
+    },
+    {
+      "text": "poetry",
+      "type": "not_contains"
+    },
+    {
+      "text": "requirements.txt",
+      "type": "not_contains"
+    },
+    {
+      "text": "--group dev",
+      "type": "contains"
+    },
+    {
+      "text": "Recommends uv as the package manager and explains why it is preferred over pip/poetry (speed, single tool for venv+deps+lockfile)",
+      "type": "llm"
+    }
+  ]
+}

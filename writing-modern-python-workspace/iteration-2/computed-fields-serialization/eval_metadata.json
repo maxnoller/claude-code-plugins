@@ -1,0 +1,11 @@
+{
+  "eval_id": 5,
+  "eval_name": "computed-fields-serialization",
+  "prompt": "I need a pydantic model for an API response that includes computed fields. It's a Product with name, price_cents (int), tax_rate (float), and quantity. I need computed price_dollars, tax_amount, and total. The product should be immutable after creation. Also add a custom serializer so price fields come out as formatted dollar strings in the JSON.",
+  "assertions": [
+    {"text": "Uses @computed_field decorator with @property for derived fields", "type": "llm"},
+    {"text": "Uses frozen=True (required for immutability, also enables @cached_property if used)", "type": "llm"},
+    {"text": "Uses field_serializer or PlainSerializer for dollar formatting", "type": "llm"},
+    {"text": "Computed fields have explicit return type annotations", "type": "llm"}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "run_id": "reusable-constrained-types-with_skill",
+  "expectations": [
+    {"text": "Uses Annotated[type, ...] for ALL constrained types", "passed": true, "evidence": "All 6 types: PositiveInt, NonEmptyStr, Email, MoneyAmount, Percentage, HttpsUrl"},
+    {"text": "Types are reusable aliases", "passed": true, "evidence": "Lines 16-45: all module-level aliases"},
+    {"text": "Money type enforces 2dp and positive", "passed": true, "evidence": "Lines 28-32: AfterValidator(round to 2dp) + Field(gt=0)"},
+    {"text": "Types demonstrated in a model", "passed": true, "evidence": "Product model on line 52 uses all 6"}
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "BaseModel",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'class DatabaseConfig(BaseModel)', 'class RetryConfig(BaseModel)', 'class AppConfig(BaseModel)'"
+    },
+    {
+      "text": "strict=True",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'ConfigDict(strict=True, frozen=True, extra=\"forbid\")' in all three model classes"
+    },
+    {
+      "text": "frozen=True",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'frozen=True' in ConfigDict for all three model classes"
+    },
+    {
+      "text": "Chooses Pydantic for config parsing (external file = trust boundary)",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response explicitly states 'Config files are a trust boundary (external input you don't control), so Pydantic is the right call here'"
+    },
+    {
+      "text": "Uses ConfigDict with strict=True and frozen=True",
+      "type": "llm",
+      "passed": true,
+      "evidence": "All three models use 'model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\")'"
+    },
+    {
+      "text": "Does NOT overengineer \u2014 keeps models minimal for the actual config shape",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Models are tightly scoped to the described config shape: DatabaseConfig, RetryConfig, AppConfig. No unnecessary abstractions, base classes, or generic machinery beyond what's needed."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

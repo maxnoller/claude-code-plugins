@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "Protocol",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'Protocol' in the class definition and imports: 'from typing import Protocol, Self, runtime_checkable'"
+    },
+    {
+      "text": "from typing import Optional",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "The text 'from typing import Optional' does not appear anywhere in the response"
+    },
+    {
+      "text": "from typing import List",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "The text 'from typing import List' does not appear anywhere in the response"
+    },
+    {
+      "text": "from typing import Dict",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "The text 'from typing import Dict' does not appear anywhere in the response"
+    },
+    {
+      "text": "Uses typing.Protocol correctly for structural subtyping with the specified methods",
+      "type": "llm",
+      "passed": true,
+      "evidence": "The response defines a Protocol class with both to_json() -> str and from_json(cls, data: str) -> Self methods, uses @runtime_checkable decorator, and correctly explains structural subtyping semantics"
+    },
+    {
+      "text": "Uses modern Python type annotation syntax (str | None, list[str], dict[str, int]) throughout, not Optional, List, Dict from typing",
+      "type": "llm",
+      "passed": true,
+      "evidence": "The response uses only modern type hints (str, Self) with no usage of Optional, List, or Dict from typing module. All annotations are built-in or modern style."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

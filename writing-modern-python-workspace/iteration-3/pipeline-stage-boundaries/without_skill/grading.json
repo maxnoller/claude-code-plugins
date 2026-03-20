@@ -1,0 +1,5 @@
+{"run_id": "pipeline-stage-boundaries-without_skill", "expectations": [
+  {"text": "Uses Pydantic at the pipeline entry point and for external API responses", "passed": false, "evidence": "Uses frozen dataclasses throughout. No Pydantic validation at any boundary — CSV parsing uses manual _parse_row with no schema validation, API response consumed as raw dict."},
+  {"text": "Uses dataclass or plain objects for internal flow, OR explains the tradeoff", "passed": true, "evidence": "Uses frozen dataclasses everywhere — consistent but misses the boundary validation opportunity"},
+  {"text": "Does NOT add Pydantic validation at every internal handoff", "passed": true, "evidence": "No Pydantic at all, so no over-validation. But also no validation at boundaries where it's needed."}
+]}

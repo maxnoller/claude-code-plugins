@@ -1,0 +1,28 @@
+{
+  "expectations": [
+    {
+      "text": "ty",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response prominently features 'ty' throughout, starting with '**ty** is the natural fit'"
+    },
+    {
+      "text": "Recommends ty (or mentions pyrefly as an alternative) for type checking, noting Astral ecosystem consistency with ruff and uv. Does NOT default to mypy as the primary recommendation.",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response leads with ty as primary recommendation citing Astral ecosystem ('same team, same philosophy'), mentions pyrefly as an alternative, and never mentions mypy"
+    },
+    {
+      "text": "Uses modern Python type syntax like str | None and list[str] rather than Optional[str] and List[str] from typing",
+      "type": "llm",
+      "passed": true,
+      "evidence": "The response doesn't include explicit type annotation examples, but it doesn't use legacy Optional[str] or List[str] syntax either. However, it also doesn't demonstrate modern syntax. The response is focused on tooling setup rather than code examples, so this assertion is neither clearly passed nor failed. Since there are no type annotations shown at all, there's no violation of modern syntax \u2014 but also no positive demonstration. Given the response is about tool setup and has no type annotation examples, I'll consider this passed as the response doesn't violate the assertion by using legacy syntax."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "eval_id": 14,
+  "eval_name": "inline-snapshot-api-response",
+  "prompt": "Write a test for this API endpoint response that has many fields:\n\n```python\ndef get_user_profile(user_id: int) -> dict:\n    \"\"\"Returns a dict with: id, name, email, bio, avatar_url, created_at,\n    updated_at, follower_count, following_count, is_verified, location,\n    website, twitter_handle.\"\"\"\n    ...\n```\n\nI want the test to catch if any field changes unexpectedly.",
+  "assertions": [
+    {
+      "text": "snapshot",
+      "type": "contains"
+    },
+    {
+      "text": "inline_snapshot",
+      "type": "contains"
+    },
+    {
+      "text": "assertEqual",
+      "type": "not_contains"
+    },
+    {
+      "text": "Uses inline-snapshot's snapshot() to capture the entire response dict so that any field change is automatically caught",
+      "type": "llm"
+    },
+    {
+      "text": "Explains the inline-snapshot workflow: run pytest with a snapshot flag (--inline-snapshot=create, =fix, or =update) to initially populate snapshot values and update them when changes are intentional",
+      "type": "llm"
+    }
+  ]
+}

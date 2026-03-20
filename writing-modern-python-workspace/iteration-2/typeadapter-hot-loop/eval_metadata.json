@@ -1,0 +1,10 @@
+{
+  "eval_id": 4,
+  "eval_name": "typeadapter-hot-loop",
+  "prompt": "I have a function that receives JSON bytes from a message queue and needs to validate it as a list of sensor readings. Each reading has sensor_id (str), value (float), timestamp (datetime), and optional metadata dict. This is in a hot loop processing thousands of messages per second. Write the validation code.",
+  "assertions": [
+    {"text": "Uses TypeAdapter created at module level, NOT inside the function or loop", "type": "llm"},
+    {"text": "Uses validate_json() for direct JSON parsing instead of json.loads() + validate_python()", "type": "llm"},
+    {"text": "Does NOT instantiate TypeAdapter inside a loop or per-call", "type": "llm"}
+  ]
+}

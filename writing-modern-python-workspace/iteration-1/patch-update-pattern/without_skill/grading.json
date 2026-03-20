@@ -1,0 +1,25 @@
+{
+  "run_id": "patch-update-pattern-without_skill",
+  "expectations": [
+    {
+      "text": "Uses model_dump(exclude_unset=True) to get only sent fields",
+      "passed": false,
+      "evidence": "Uses manual iteration over model_fields_set (lines 66-75) instead of model_dump(exclude_unset=True). Functionally similar but not the idiomatic v2 pattern."
+    },
+    {
+      "text": "Has a separate update/patch model where fields are optional",
+      "passed": true,
+      "evidence": "UserProfilePatch on line 33 with all fields as T | None = None"
+    },
+    {
+      "text": "Does NOT use exclude_none=True as the PATCH mechanism (exclude_unset is correct)",
+      "passed": true,
+      "evidence": "Uses model_fields_set, not exclude_none. Correct mechanism."
+    },
+    {
+      "text": "Uses model_validate or proper v2 methods, not v1 patterns",
+      "passed": true,
+      "evidence": "Line 142: UserProfilePatch.model_validate(raw_payload)"
+    }
+  ]
+}

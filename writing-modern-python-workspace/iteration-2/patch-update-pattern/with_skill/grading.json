@@ -1,0 +1,9 @@
+{
+  "run_id": "patch-update-pattern-with_skill",
+  "expectations": [
+    {"text": "Uses model_dump(exclude_unset=True)", "passed": true, "evidence": "Line 74: patch.model_dump(exclude_unset=True)"},
+    {"text": "Has separate update/patch model", "passed": true, "evidence": "UserProfilePatch (line 52) with all fields T | None = None"},
+    {"text": "Does NOT use exclude_none=True", "passed": true, "evidence": "Uses exclude_unset=True, docstring explicitly explains the difference"},
+    {"text": "Uses v2 methods", "passed": true, "evidence": "model_dump, model_copy(update=...) on line 117"}
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "BaseModel",
+      "type": "contains",
+      "passed": true,
+      "evidence": "BaseModel appears multiple times: 'class Customer(BaseModel)' and 'class StripeWebhookPayload(BaseModel)'"
+    },
+    {
+      "text": "ConfigDict",
+      "type": "contains",
+      "passed": true,
+      "evidence": "ConfigDict appears in both model definitions: 'model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\")'"
+    },
+    {
+      "text": "strict=True",
+      "type": "contains",
+      "passed": true,
+      "evidence": "strict=True appears in ConfigDict calls for both Customer and StripeWebhookPayload models"
+    },
+    {
+      "text": "Chooses Pydantic BaseModel (not dataclass) because this is external input crossing a trust boundary",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response uses BaseModel for both models and explicitly discusses 'Trust boundary placement' \u2014 validating once at the endpoint and passing a trusted object internally. The trust boundary rationale is present even if dataclass comparison is not explicitly stated."
+    },
+    {
+      "text": "Uses ConfigDict with strict=True, frozen=True, and extra='forbid'",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Both Customer and StripeWebhookPayload use 'ConfigDict(strict=True, frozen=True, extra=\"forbid\")' exactly as specified"
+    },
+    {
+      "text": "Uses Annotated type aliases for reusable constraints rather than inlining Field() on every field",
+      "type": "llm",
+      "passed": true,
+      "evidence": "NonEmptyStr and PositiveInt are defined as module-level Annotated type aliases and reused across fields, rather than inlining Field() on each field definition"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,5 @@
+{"run_id": "internal-data-container-with_skill", "expectations": [
+  {"text": "Does NOT use Pydantic BaseModel for this internal-only data container", "passed": true, "evidence": "Uses @dataclass(frozen=True), no Pydantic import"},
+  {"text": "Uses dataclass, NamedTuple, or plain class instead", "passed": true, "evidence": "Line 5: @dataclass(frozen=True) class UserInfo"},
+  {"text": "Explains WHY Pydantic is unnecessary here", "passed": true, "evidence": "Module docstring: 'never serialized or received from outside' and 'benefits from immutability'"}
+]}

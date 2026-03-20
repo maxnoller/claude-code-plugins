@@ -1,0 +1,19 @@
+{
+  "eval_id": 11,
+  "eval_name": "ty-type-checking",
+  "prompt": "Add type checking to my Python project. I'm already using ruff and uv for linting and package management.",
+  "assertions": [
+    {
+      "text": "ty",
+      "type": "contains"
+    },
+    {
+      "text": "Recommends ty (or mentions pyrefly as an alternative) for type checking, noting Astral ecosystem consistency with ruff and uv. Does NOT default to mypy as the primary recommendation.",
+      "type": "llm"
+    },
+    {
+      "text": "Uses modern Python type syntax like str | None and list[str] rather than Optional[str] and List[str] from typing",
+      "type": "llm"
+    }
+  ]
+}

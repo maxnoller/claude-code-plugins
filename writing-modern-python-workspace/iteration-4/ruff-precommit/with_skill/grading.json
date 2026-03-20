@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "ruff",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'ruff' extensively throughout, including in the pre-commit config, pyproject.toml sections, and explanations."
+    },
+    {
+      "text": "ruff-pre-commit",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'ruff-pre-commit' in the repo URL 'https://github.com/astral-sh/ruff-pre-commit' and in the explanation section."
+    },
+    {
+      "text": "flake8",
+      "type": "not_contains",
+      "passed": false,
+      "evidence": "Response contains 'flake8' in the sentence: 'ruff (which replaces flake8, isort, black, and friends in one tool)'"
+    },
+    {
+      "text": "isort",
+      "type": "not_contains",
+      "passed": false,
+      "evidence": "Response contains 'isort' in the sentence: 'ruff (which replaces flake8, isort, black, and friends in one tool)'"
+    },
+    {
+      "text": "Uses ruff for both linting and formatting in the pre-commit configuration (via ruff-pre-commit hooks or ruff check/ruff format commands), NOT the traditional flake8+black+isort stack",
+      "type": "llm",
+      "passed": true,
+      "evidence": "The pre-commit config exclusively uses ruff-pre-commit with 'ruff' hook (linting) and 'ruff-format' hook (formatting). No flake8, black, or isort are used in the configuration itself."
+    },
+    {
+      "text": "Does NOT recommend black as a separate tool \u2014 if 'black' appears, it is only as a passing reference to ruff's compatibility, not as a tool to install or configure",
+      "type": "llm",
+      "passed": true,
+      "evidence": "'black' appears only once as a passing reference in 'ruff (which replaces flake8, isort, black, and friends in one tool)' \u2014 it is not recommended for installation or configuration anywhere in the response."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 2,
+    "total": 6,
+    "pass_rate": 0.67
+  }
+}

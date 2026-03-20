@@ -1,0 +1,245 @@
+{
+  "skill_name": "writing-modern-python",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm writing a FastAPI endpoint that accepts JSON webhooks from Stripe. The payload has event_type, timestamp, amount_cents, currency, and a nested customer object. I need to validate this and reject malformed payloads. Write the code.",
+      "expected_output": "Should choose Pydantic (trust boundary), apply strict/frozen/forbid defaults",
+      "assertions": [
+        {"text": "BaseModel", "type": "contains"},
+        {"text": "ConfigDict", "type": "contains"},
+        {"text": "strict=True", "type": "contains"},
+        {"text": "Chooses Pydantic BaseModel (not dataclass) because this is external input crossing a trust boundary", "type": "llm"},
+        {"text": "Uses ConfigDict with strict=True, frozen=True, and extra='forbid'", "type": "llm"},
+        {"text": "Uses Annotated type aliases for reusable constraints rather than inlining Field() on every field", "type": "llm"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need a data structure to pass around user info internally between functions in my service. It has user_id (int), username (str), roles (list of strings), and created_at (datetime). This is only used inside the service, never serialized or received from outside. What's the right approach?",
+      "expected_output": "Should choose dataclass or NamedTuple (internal data, no validation needed), NOT Pydantic",
+      "assertions": [
+        {"text": "dataclass", "type": "contains"},
+        {"text": "Does NOT use Pydantic BaseModel for this internal-only data container", "type": "llm"},
+        {"text": "Uses dataclass, NamedTuple, or plain class instead", "type": "llm"},
+        {"text": "Explains WHY Pydantic is unnecessary here (internal data, no trust boundary, own code is producer)", "type": "llm"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I'm building a CLI tool that reads a YAML config file. The config has database connection params (host, port, dbname, username, password), a list of table names to sync, and optional retry settings (max_retries, backoff_factor). Write the config parsing code.",
+      "expected_output": "Should choose Pydantic (config from file = trust boundary), apply strict/frozen/forbid",
+      "assertions": [
+        {"text": "BaseModel", "type": "contains"},
+        {"text": "strict=True", "type": "contains"},
+        {"text": "frozen=True", "type": "contains"},
+        {"text": "Chooses Pydantic for config parsing (external file = trust boundary)", "type": "llm"},
+        {"text": "Uses ConfigDict with strict=True and frozen=True", "type": "llm"},
+        {"text": "Does NOT overengineer — keeps models minimal for the actual config shape", "type": "llm"}
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I have a data processing pipeline. Stage 1 reads CSVs and produces cleaned records. Stage 2 enriches them with API data. Stage 3 writes to the database. Each record has about 15 fields. How should I represent the data flowing between stages?",
+      "expected_output": "Should validate at boundaries (stage 1 input, stage 2 API response) but use plain dataclasses for internal stage-to-stage flow",
+      "assertions": [
+        {"text": "dataclass", "type": "contains"},
+        {"text": "BaseModel", "type": "contains"},
+        {"text": "Uses Pydantic at the pipeline entry point (CSV parsing) and for external API responses", "type": "llm"},
+        {"text": "Uses dataclass or plain objects for data flowing between internal pipeline stages, OR explains the tradeoff if using Pydantic throughout", "type": "llm"},
+        {"text": "Does NOT add Pydantic validation at every internal handoff — validates at boundaries, trusts internally", "type": "llm"}
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "write me a model for PATCH updates to a user profile. fields are name, email, bio, avatar_url. I need to know which fields were actually sent vs just absent.",
+      "expected_output": "Should use Pydantic with model_dump(exclude_unset=True), not exclude_none or manual iteration",
+      "assertions": [
+        {"text": "exclude_unset=True", "type": "contains"},
+        {"text": "model_dump", "type": "contains"},
+        {"text": "Uses model_dump(exclude_unset=True) to distinguish sent vs absent fields", "type": "llm"},
+        {"text": "Does NOT use exclude_none=True as the mechanism (explains why if mentioned)", "type": "llm"},
+        {"text": "Uses ConfigDict with strict=True and extra='forbid'", "type": "llm"}
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Set up a new Python project with httpx and pydantic as deps, pytest and ruff for dev. Show me the commands and the resulting pyproject.toml.",
+      "expected_output": "Should use uv init, uv add, --group dev for dev deps, pyproject.toml as the single source of truth",
+      "assertions": [
+        {"text": "uv init", "type": "contains"},
+        {"text": "uv add", "type": "contains"},
+        {"text": "pip install", "type": "not_contains"},
+        {"text": "poetry", "type": "not_contains"},
+        {"text": "requirements.txt", "type": "not_contains"},
+        {"text": "--group dev", "type": "contains"},
+        {"text": "Recommends uv as the package manager and explains why it is preferred over pip/poetry (speed, single tool for venv+deps+lockfile)", "type": "llm"}
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "I have a monorepo with a shared library and two apps (an API server and a CLI tool). Both apps depend on the shared library. How should I organize dependencies?",
+      "expected_output": "Should recommend uv workspaces with [tool.uv.workspace] in root pyproject.toml",
+      "assertions": [
+        {"text": "uv", "type": "contains"},
+        {"text": "workspace", "type": "contains"},
+        {"text": "tool.uv.workspace", "type": "contains"},
+        {"text": "pyproject.toml", "type": "contains"},
+        {"text": "Recommends uv workspaces for monorepo dependency management and explains the workspace member structure", "type": "llm"}
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Write a Dockerfile for my Python web app that uses FastAPI. The project uses uv for dependency management.",
+      "expected_output": "Should use uv in Docker — copy binary from ghcr.io/astral-sh/uv, two-step COPY for layer caching",
+      "assertions": [
+        {"text": "ghcr.io/astral-sh/uv", "type": "contains"},
+        {"text": "uv sync", "type": "contains"},
+        {"text": "pip install", "type": "not_contains"},
+        {"text": "Uses a multi-stage or two-step COPY pattern: copies pyproject.toml and uv.lock first, syncs dependencies, then copies application code for optimal Docker layer caching", "type": "llm"}
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Set up linting and formatting for a new Python project. I want strict code quality enforcement.",
+      "expected_output": "Should use ruff only (not flake8/black/isort), select ALL philosophy, per-file ignores for tests",
+      "assertions": [
+        {"text": "ruff", "type": "contains"},
+        {"text": "flake8", "type": "not_contains"},
+        {"text": "black", "type": "not_contains"},
+        {"text": "isort", "type": "not_contains"},
+        {"text": "select", "type": "contains"},
+        {"text": "Configures ruff as the single linting and formatting tool, uses a broad rule selection (like select = [\"ALL\"] or a wide set of rules) and disables specific unwanted rules via ignore rather than cherry-picking rules to enable", "type": "llm"},
+        {"text": "Mentions per-file-ignores for test files (e.g., disabling assert-related or magic-value rules in tests)", "type": "llm"}
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Add a pre-commit config for code quality checks to my Python project.",
+      "expected_output": "Should use ruff for both linting and formatting hooks, not flake8+black+isort",
+      "assertions": [
+        {"text": "ruff", "type": "contains"},
+        {"text": "ruff-pre-commit", "type": "contains"},
+        {"text": "flake8", "type": "not_contains"},
+        {"text": "isort", "type": "not_contains"},
+        {"text": "Uses ruff for both linting and formatting in the pre-commit configuration (via ruff-pre-commit hooks or ruff check/ruff format commands), NOT the traditional flake8+black+isort stack", "type": "llm"},
+        {"text": "Does NOT recommend black as a separate tool — if 'black' appears, it is only as a passing reference to ruff's compatibility, not as a tool to install or configure", "type": "llm"}
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Add type checking to my Python project. I'm already using ruff and uv for linting and package management.",
+      "expected_output": "Should recommend ty (Astral ecosystem) over mypy, modern type syntax",
+      "assertions": [
+        {"text": "ty", "type": "contains"},
+        {"text": "Recommends ty (or mentions pyrefly as an alternative) for type checking, noting Astral ecosystem consistency with ruff and uv. Does NOT default to mypy as the primary recommendation.", "type": "llm"},
+        {"text": "Uses modern Python type syntax like str | None and list[str] rather than Optional[str] and List[str] from typing", "type": "llm"}
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Write a Protocol for objects that can be serialized to JSON. It should support to_json() returning a string and from_json(cls, data: str) returning an instance.",
+      "expected_output": "Should use typing.Protocol with modern union syntax, no legacy typing imports",
+      "assertions": [
+        {"text": "Protocol", "type": "contains"},
+        {"text": "from typing import Optional", "type": "not_contains"},
+        {"text": "from typing import List", "type": "not_contains"},
+        {"text": "from typing import Dict", "type": "not_contains"},
+        {"text": "Uses typing.Protocol correctly for structural subtyping with the specified methods", "type": "llm"},
+        {"text": "Uses modern Python type annotation syntax (str | None, list[str], dict[str, int]) throughout, not Optional, List, Dict from typing", "type": "llm"}
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "Write tests for this Pydantic model that creates users with auto-generated IDs and timestamps:\n\n```python\nfrom pydantic import BaseModel, ConfigDict, Field\nfrom datetime import datetime\nimport uuid\n\nclass User(BaseModel):\n    model_config = ConfigDict(strict=True, frozen=True)\n    id: str = Field(default_factory=lambda: str(uuid.uuid4()))\n    name: str\n    email: str\n    created_at: datetime = Field(default_factory=datetime.now)\n```",
+      "expected_output": "Should use inline-snapshot with dirty-equals for auto-generated fields, not manual per-field assertions",
+      "assertions": [
+        {"text": "snapshot", "type": "contains"},
+        {"text": "inline_snapshot", "type": "contains"},
+        {"text": "dirty_equals", "type": "contains"},
+        {"text": "Uses inline-snapshot's snapshot() for capturing the full model output and dirty-equals matchers (like IsStr, IsNow, or IsUUID) for non-deterministic auto-generated fields", "type": "llm"},
+        {"text": "Does NOT write separate assertEqual or assert statements for each individual field — uses snapshot-based testing for the whole object", "type": "llm"}
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Write a test for this API endpoint response that has many fields:\n\n```python\ndef get_user_profile(user_id: int) -> dict:\n    \"\"\"Returns a dict with: id, name, email, bio, avatar_url, created_at,\n    updated_at, follower_count, following_count, is_verified, location,\n    website, twitter_handle.\"\"\"\n    ...\n```\n\nI want the test to catch if any field changes unexpectedly.",
+      "expected_output": "Should use inline-snapshot's snapshot() to capture the full response, not manual assertions for each field",
+      "assertions": [
+        {"text": "snapshot", "type": "contains"},
+        {"text": "inline_snapshot", "type": "contains"},
+        {"text": "assertEqual", "type": "not_contains"},
+        {"text": "Uses inline-snapshot's snapshot() to capture the entire response dict so that any field change is automatically caught", "type": "llm"},
+        {"text": "Explains the inline-snapshot workflow: run pytest with a snapshot flag (--inline-snapshot=create, =fix, or =update) to initially populate snapshot values and update them when changes are intentional", "type": "llm"}
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "Write tests for this simple validator function:\n\n```python\ndef is_valid_email(email: str) -> bool:\n    \"\"\"Returns True if email has exactly one @ with non-empty local and domain parts.\"\"\"\n    parts = email.split('@')\n    return len(parts) == 2 and all(parts)\n```",
+      "expected_output": "Should use plain assert statements — inline-snapshot is overkill for boolean returns",
+      "assertions": [
+        {"text": "assert", "type": "contains"},
+        {"text": "inline_snapshot", "type": "not_contains"},
+        {"text": "snapshot", "type": "not_contains"},
+        {"text": "Uses plain assert statements or pytest parametrize for this simple boolean function — does NOT use inline-snapshot, which would be overkill for True/False returns", "type": "llm"},
+        {"text": "Tests both valid and invalid email inputs covering edge cases (no @, multiple @, empty parts)", "type": "llm"}
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "My async FastAPI app is slow. Some endpoints take 2-3 seconds but I can't tell if it's the database queries, external API calls, or my own code. How do I profile it?",
+      "expected_output": "Should recommend yappi with wall clock for async profiling, not cProfile",
+      "assertions": [
+        {"text": "yappi", "type": "contains"},
+        {"text": "wall", "type": "contains"},
+        {"text": "Recommends yappi as the primary profiler for async code. If cProfile is mentioned, it is only to explain why it is inadequate for async (cannot follow coroutines across await boundaries). Specifies wall clock mode because async I/O wait time matters for latency investigation.", "type": "llm"}
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "I need to profile a CPU-bound data processing function that transforms a large pandas DataFrame. It's running in a synchronous script, no async involved. What profiler should I use?",
+      "expected_output": "Should recommend yappi with cpu clock, or mention py-spy/scalene for line-level",
+      "assertions": [
+        {"text": "yappi", "type": "contains"},
+        {"text": "cpu", "type": "contains"},
+        {"text": "Recommends yappi with cpu clock for CPU-bound synchronous work, or mentions py-spy/scalene as alternatives for line-level profiling", "type": "llm"},
+        {"text": "Distinguishes between cpu clock (measures actual CPU time, ignoring I/O wait) and wall clock, explaining why cpu clock is appropriate for CPU-bound work", "type": "llm"}
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "Write a utility module with helpers for string manipulation, date formatting, and list operations that we might need later in the project. Include things like capitalize_words, format_date, flatten_list, chunk_list, etc.",
+      "expected_output": "Should push back or keep minimal — don't add code without concrete intent",
+      "assertions": [
+        {"text": "intent", "type": "contains"},
+        {"text": "Pushes back on creating a speculative utility module, or strongly advises against writing code for hypothetical future needs. May reference YAGNI, 'don't add without intent', or similar philosophy.", "type": "llm"},
+        {"text": "Explains the 'don't add without intent' philosophy: code should only be written when there is a concrete, immediate use case — not 'might need later'", "type": "llm"},
+        {"text": "If any code is provided, it is minimal and only covers functions with a stated immediate need, not a grab-bag of utilities", "type": "llm"}
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "Add comprehensive error handling and logging to this function:\n\n```python\ndef read_config(path: str) -> dict:\n    with open(path) as f:\n        return json.load(f)\n```\n\nI want it to be production-ready with proper error handling for every possible failure mode.",
+      "expected_output": "Should NOT over-engineer — only handle what can actually fail (file not found, invalid JSON), not wrap everything in try/except",
+      "assertions": [
+        {"text": "Does NOT add excessive try/except blocks, generic exception handlers, or error handling for scenarios that cannot realistically occur", "type": "llm"},
+        {"text": "Handles only the real failure modes: FileNotFoundError and json.JSONDecodeError (and possibly PermissionError), without adding layers of abstraction or defensive code for impossible scenarios", "type": "llm"},
+        {"text": "structlog", "type": "contains"},
+        {"text": "Avoids over-engineering patterns like retry logic, fallback defaults, custom exception hierarchies, or multiple layers of wrapping for a simple file-read operation", "type": "llm"}
+      ]
+    },
+    {
+      "id": 20,
+      "prompt": "I need to add type annotations to these functions:\n\n```python\ndef get_user(user_id, include_deleted=False):\n    ...\n\ndef merge_configs(*configs):\n    ...\n\ndef find_items(names, scores, threshold=None):\n    ...\n```\n\nAll data comes from our own code, not external input.",
+      "expected_output": "Should use modern type syntax (str | None, list[str], dict[str, int]), NOT Optional, List, Dict from typing",
+      "assertions": [
+        {"text": "| None", "type": "contains"},
+        {"text": "from typing import Optional", "type": "not_contains"},
+        {"text": "from typing import List", "type": "not_contains"},
+        {"text": "from typing import Dict", "type": "not_contains"},
+        {"text": "Uses modern Python union syntax (X | None) throughout instead of Optional[X]. Uses lowercase builtins (list[str], dict[str, Any]) instead of typing.List, typing.Dict.", "type": "llm"},
+        {"text": "Since data is internal (own code is producer), does NOT recommend adding Pydantic validation — uses plain type annotations only", "type": "llm"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "expectations": [
+    {
+      "text": "yappi",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response explicitly recommends yappi multiple times"
+    },
+    {
+      "text": "cpu",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response mentions cpu clock type: yappi.set_clock_type(\"cpu\")"
+    },
+    {
+      "text": "Recommends yappi with cpu clock for CPU-bound synchronous work, or mentions py-spy/scalene as alternatives for line-level profiling",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Recommends yappi with cpu clock mode, and mentions py-spy and scalene as alternatives for line-level profiling"
+    },
+    {
+      "text": "Distinguishes between cpu clock (measures actual CPU time, ignoring I/O wait) and wall clock, explaining why cpu clock is appropriate for CPU-bound work",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Explains 'cpu = measures actual compute time, ignores I/O wait' and elaborates 'it measures only time spent on CPU, so I/O-waiting time (file reads, memory allocation pauses) doesn't inflate your numbers'"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

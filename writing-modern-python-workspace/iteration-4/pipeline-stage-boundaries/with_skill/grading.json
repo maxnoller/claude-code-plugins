@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "dataclass",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains @dataclass decorator and multiple references to 'dataclass' throughout"
+    },
+    {
+      "text": "BaseModel",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'class RawRecord(BaseModel)' and 'class ApiEnrichment(BaseModel)' in the code"
+    },
+    {
+      "text": "Uses Pydantic at the pipeline entry point (CSV parsing) and for external API responses",
+      "type": "llm",
+      "passed": true,
+      "evidence": "RawRecord(BaseModel) validates CSV rows at Stage 1, ApiEnrichment(BaseModel) validates API responses in Stage 2, both explicitly called out as trust boundaries"
+    },
+    {
+      "text": "Uses dataclass or plain objects for data flowing between internal pipeline stages, OR explains the tradeoff if using Pydantic throughout",
+      "type": "llm",
+      "passed": true,
+      "evidence": "EnrichedRecord is @dataclass(frozen=True) and flows between all three stages internally; also explains tradeoff: 'Pydantic has validation overhead and signals untrusted boundary to readers'"
+    },
+    {
+      "text": "Does NOT add Pydantic validation at every internal handoff \u2014 validates at boundaries, trusts internally",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Stage 3 comment 'No validation needed \u2014 data is trusted at this point'; internal stages pass EnrichedRecord dataclass without re-validating; Pydantic only used at CSV input and API response boundaries"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

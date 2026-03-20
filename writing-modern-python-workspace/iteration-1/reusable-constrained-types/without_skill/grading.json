@@ -1,0 +1,25 @@
+{
+  "run_id": "reusable-constrained-types-without_skill",
+  "expectations": [
+    {
+      "text": "Uses Annotated[type, ...] pattern for ALL constrained types, not custom classes",
+      "passed": true,
+      "evidence": "All types use Annotated: PositiveInt (line 31), NonEmptyString (line 34), EmailAddress (line 46), MoneyAmount (line 62), Percentage (line 76), HttpsUrl (line 88)"
+    },
+    {
+      "text": "Types are defined as reusable aliases (e.g. PositiveInt = Annotated[int, Field(gt=0)])",
+      "passed": true,
+      "evidence": "All defined as module-level type aliases"
+    },
+    {
+      "text": "Money type enforces exactly 2 decimal places and positive value",
+      "passed": true,
+      "evidence": "Lines 49-57: manual AfterValidator checks value > 0 and quantizes to 2dp"
+    },
+    {
+      "text": "Types are demonstrated in a model to show reuse",
+      "passed": true,
+      "evidence": "ProductListing on line 95 uses all 6 types"
+    }
+  ]
+}

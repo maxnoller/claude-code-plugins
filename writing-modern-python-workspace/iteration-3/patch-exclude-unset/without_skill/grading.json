@@ -1,0 +1,5 @@
+{"run_id": "patch-exclude-unset-without_skill", "expectations": [
+  {"text": "Uses model_dump(exclude_unset=True)", "passed": false, "evidence": "Line 26: uses model_dump(include=self.model_fields_set) — functionally similar but not the idiomatic exclude_unset pattern"},
+  {"text": "Does NOT use exclude_none=True as the mechanism", "passed": true, "evidence": "Uses model_fields_set filtering, not exclude_none"},
+  {"text": "Uses ConfigDict with strict=True and extra='forbid'", "passed": false, "evidence": "No ConfigDict on the model at all"}
+]}

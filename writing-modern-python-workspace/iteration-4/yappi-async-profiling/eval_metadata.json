@@ -1,0 +1,19 @@
+{
+  "eval_id": 16,
+  "eval_name": "yappi-async-profiling",
+  "prompt": "My async FastAPI app is slow. Some endpoints take 2-3 seconds but I can't tell if it's the database queries, external API calls, or my own code. How do I profile it?",
+  "assertions": [
+    {
+      "text": "yappi",
+      "type": "contains"
+    },
+    {
+      "text": "wall",
+      "type": "contains"
+    },
+    {
+      "text": "Recommends yappi as the primary profiler for async code. If cProfile is mentioned, it is only to explain why it is inadequate for async (cannot follow coroutines across await boundaries). Specifies wall clock mode because async I/O wait time matters for latency investigation.",
+      "type": "llm"
+    }
+  ]
+}

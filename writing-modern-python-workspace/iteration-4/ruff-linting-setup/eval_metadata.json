@@ -1,0 +1,35 @@
+{
+  "eval_id": 9,
+  "eval_name": "ruff-linting-setup",
+  "prompt": "Set up linting and formatting for a new Python project. I want strict code quality enforcement.",
+  "assertions": [
+    {
+      "text": "ruff",
+      "type": "contains"
+    },
+    {
+      "text": "flake8",
+      "type": "not_contains"
+    },
+    {
+      "text": "black",
+      "type": "not_contains"
+    },
+    {
+      "text": "isort",
+      "type": "not_contains"
+    },
+    {
+      "text": "select",
+      "type": "contains"
+    },
+    {
+      "text": "Configures ruff as the single linting and formatting tool, uses a broad rule selection (like select = [\"ALL\"] or a wide set of rules) and disables specific unwanted rules via ignore rather than cherry-picking rules to enable",
+      "type": "llm"
+    },
+    {
+      "text": "Mentions per-file-ignores for test files (e.g., disabling assert-related or magic-value rules in tests)",
+      "type": "llm"
+    }
+  ]
+}

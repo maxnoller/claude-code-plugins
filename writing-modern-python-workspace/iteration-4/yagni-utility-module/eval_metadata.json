@@ -1,0 +1,23 @@
+{
+  "eval_id": 18,
+  "eval_name": "yagni-utility-module",
+  "prompt": "Write a utility module with helpers for string manipulation, date formatting, and list operations that we might need later in the project. Include things like capitalize_words, format_date, flatten_list, chunk_list, etc.",
+  "assertions": [
+    {
+      "text": "intent",
+      "type": "contains"
+    },
+    {
+      "text": "Pushes back on creating a speculative utility module, or strongly advises against writing code for hypothetical future needs. May reference YAGNI, 'don't add without intent', or similar philosophy.",
+      "type": "llm"
+    },
+    {
+      "text": "Explains the 'don't add without intent' philosophy: code should only be written when there is a concrete, immediate use case \u2014 not 'might need later'",
+      "type": "llm"
+    },
+    {
+      "text": "If any code is provided, it is minimal and only covers functions with a stated immediate need, not a grab-bag of utilities",
+      "type": "llm"
+    }
+  ]
+}

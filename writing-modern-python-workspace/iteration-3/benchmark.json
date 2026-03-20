@@ -1,0 +1,53 @@
+{
+  "skill_name": "writing-modern-python",
+  "iteration": 3,
+  "evals": [
+    {
+      "eval_name": "webhook-trust-boundary",
+      "with_skill": {"pass_rate": 1.0, "passed": 3, "total": 3, "tokens": 14515, "duration_seconds": 31.0},
+      "without_skill": {"pass_rate": 0.33, "passed": 1, "total": 3, "tokens": 12101, "duration_seconds": 47.0},
+      "delta": "+0.67 — baseline chose Pydantic but skipped strict/frozen/forbid and inlined constraints"
+    },
+    {
+      "eval_name": "internal-data-container",
+      "with_skill": {"pass_rate": 1.0, "passed": 3, "total": 3, "tokens": 13307, "duration_seconds": 28.6},
+      "without_skill": {"pass_rate": 1.0, "passed": 3, "total": 3, "tokens": 11113, "duration_seconds": 33.5},
+      "delta": "0.0 — NON-DISCRIMINATING: both correctly chose dataclass over Pydantic"
+    },
+    {
+      "eval_name": "config-file-parsing",
+      "with_skill": {"pass_rate": 1.0, "passed": 3, "total": 3, "tokens": 14557, "duration_seconds": 38.1},
+      "without_skill": {"pass_rate": 0.0, "passed": 0, "total": 3, "tokens": 12211, "duration_seconds": 36.4},
+      "delta": "+1.0 — BIGGEST WIN: skill chose Pydantic (45 lines), baseline chose dataclass+manual validation (222 lines)"
+    },
+    {
+      "eval_name": "pipeline-stage-boundaries",
+      "with_skill": {"pass_rate": 1.0, "passed": 3, "total": 3, "tokens": 16400, "duration_seconds": 63.1},
+      "without_skill": {"pass_rate": 0.67, "passed": 2, "total": 3, "tokens": 13601, "duration_seconds": 62.2},
+      "delta": "+0.33 — skill used Pydantic at boundaries with plain Python internally; baseline used dataclass everywhere with no validation"
+    },
+    {
+      "eval_name": "patch-exclude-unset",
+      "with_skill": {"pass_rate": 1.0, "passed": 3, "total": 3, "tokens": 14150, "duration_seconds": 23.9},
+      "without_skill": {"pass_rate": 0.33, "passed": 1, "total": 3, "tokens": 10835, "duration_seconds": 24.0},
+      "delta": "+0.67 — skill used exclude_unset=True + strict/forbid; baseline used model_fields_set + no ConfigDict"
+    }
+  ],
+  "summary": {
+    "with_skill": {"overall_pass_rate": 1.0, "passed": 15, "total": 15, "avg_tokens": 14586, "avg_duration_seconds": 36.9},
+    "without_skill": {"overall_pass_rate": 0.47, "passed": 7, "total": 15, "avg_tokens": 11972, "avg_duration_seconds": 40.6},
+    "delta_pass_rate": "+0.53"
+  },
+  "analysis": {
+    "discriminating_evals": [
+      "config-file-parsing: +1.0 — the skill's 'when to use Pydantic' guidance produced the biggest behavioral change. Baseline wrote 222 lines of manual validation; skill produced 45 lines of declarative Pydantic.",
+      "webhook-trust-boundary: +0.67 — strict/frozen/forbid defaults and Annotated aliases",
+      "patch-exclude-unset: +0.67 — exclude_unset pattern and strict defaults",
+      "pipeline-stage-boundaries: +0.33 — Pydantic at boundaries vs no validation at all"
+    ],
+    "non_discriminating_evals": [
+      "internal-data-container: 0.0 — both correctly chose dataclass. The model already knows not to over-use Pydantic for internal data."
+    ],
+    "key_finding": "The redesigned skill shows MUCH stronger differentiation (+0.53 overall) vs the previous API-tutorial version (+0.20). The biggest win is the config parsing eval — the skill's 'config files are a trust boundary' guidance caused it to choose Pydantic over manual validation, producing 5x less code. The 'when NOT to use' guidance is non-discriminating (model already knows this), but the 'when to use' and 'opinionated defaults' guidance clearly adds value."
+  }
+}

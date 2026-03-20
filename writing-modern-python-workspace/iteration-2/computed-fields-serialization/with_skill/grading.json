@@ -1,0 +1,9 @@
+{
+  "run_id": "computed-fields-serialization-with_skill",
+  "expectations": [
+    {"text": "@computed_field with @property", "passed": true, "evidence": "Lines 25-38: @computed_field + @cached_property on all 3 fields"},
+    {"text": "Uses frozen=True", "passed": true, "evidence": "Line 18: ConfigDict(strict=True, frozen=True, extra='forbid')"},
+    {"text": "Uses field_serializer or PlainSerializer", "passed": true, "evidence": "Lines 40-53: @field_serializer for each computed price field"},
+    {"text": "Explicit return type annotations", "passed": true, "evidence": "Lines 27, 32, 37: all -> float"}
+  ]
+}

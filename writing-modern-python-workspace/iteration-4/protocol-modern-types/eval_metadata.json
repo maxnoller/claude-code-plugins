@@ -1,0 +1,31 @@
+{
+  "eval_id": 12,
+  "eval_name": "protocol-modern-types",
+  "prompt": "Write a Protocol for objects that can be serialized to JSON. It should support to_json() returning a string and from_json(cls, data: str) returning an instance.",
+  "assertions": [
+    {
+      "text": "Protocol",
+      "type": "contains"
+    },
+    {
+      "text": "from typing import Optional",
+      "type": "not_contains"
+    },
+    {
+      "text": "from typing import List",
+      "type": "not_contains"
+    },
+    {
+      "text": "from typing import Dict",
+      "type": "not_contains"
+    },
+    {
+      "text": "Uses typing.Protocol correctly for structural subtyping with the specified methods",
+      "type": "llm"
+    },
+    {
+      "text": "Uses modern Python type annotation syntax (str | None, list[str], dict[str, int]) throughout, not Optional, List, Dict from typing",
+      "type": "llm"
+    }
+  ]
+}

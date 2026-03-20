@@ -1,0 +1,31 @@
+{
+  "eval_id": 20,
+  "eval_name": "modern-type-annotations",
+  "prompt": "I need to add type annotations to these functions:\n\n```python\ndef get_user(user_id, include_deleted=False):\n    ...\n\ndef merge_configs(*configs):\n    ...\n\ndef find_items(names, scores, threshold=None):\n    ...\n```\n\nAll data comes from our own code, not external input.",
+  "assertions": [
+    {
+      "text": "| None",
+      "type": "contains"
+    },
+    {
+      "text": "from typing import Optional",
+      "type": "not_contains"
+    },
+    {
+      "text": "from typing import List",
+      "type": "not_contains"
+    },
+    {
+      "text": "from typing import Dict",
+      "type": "not_contains"
+    },
+    {
+      "text": "Uses modern Python union syntax (X | None) throughout instead of Optional[X]. Uses lowercase builtins (list[str], dict[str, Any]) instead of typing.List, typing.Dict.",
+      "type": "llm"
+    },
+    {
+      "text": "Since data is internal (own code is producer), does NOT recommend adding Pydantic validation \u2014 uses plain type annotations only",
+      "type": "llm"
+    }
+  ]
+}

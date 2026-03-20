@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "assert",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Multiple assert statements present: 'assert is_valid_email(email)' and 'assert not is_valid_email(email)'"
+    },
+    {
+      "text": "inline_snapshot",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "The text 'inline_snapshot' does not appear in the response code, only in the prose explanation saying it would be 'overkill'"
+    },
+    {
+      "text": "snapshot",
+      "type": "not_contains",
+      "passed": false,
+      "evidence": "The word 'snapshot' appears in the prose: 'inline-snapshot would be overkill for scalar boolean returns'"
+    },
+    {
+      "text": "Uses plain assert statements or pytest parametrize for this simple boolean function \u2014 does NOT use inline-snapshot, which would be overkill for True/False returns",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Uses pytest.mark.parametrize with plain assert statements; explicitly avoids inline-snapshot and explains why it would be overkill"
+    },
+    {
+      "text": "Tests both valid and invalid email inputs covering edge cases (no @, multiple @, empty parts)",
+      "type": "llm",
+      "passed": true,
+      "evidence": "test_valid_emails covers valid cases; test_invalid_emails covers 'no-at-sign' (no @), 'a@b@c' and '@@' (multiple @), '@domain', 'user@', '@', '' (empty parts)"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 1,
+    "total": 5,
+    "pass_rate": 0.8
+  }
+}

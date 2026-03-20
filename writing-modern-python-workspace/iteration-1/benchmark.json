@@ -1,0 +1,131 @@
+{
+  "skill_name": "writing-modern-python",
+  "iteration": 1,
+  "evals": [
+    {
+      "eval_name": "stripe-webhook-unions",
+      "with_skill": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "total": 5,
+        "tokens": 17780,
+        "duration_seconds": 43.7
+      },
+      "without_skill": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "total": 5,
+        "tokens": 10939,
+        "duration_seconds": 23.4
+      },
+      "delta": "+0.4 (skill adds strict=True, frozen=True, extra='forbid')"
+    },
+    {
+      "eval_name": "patch-update-pattern",
+      "with_skill": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "total": 4,
+        "tokens": 17871,
+        "duration_seconds": 52.0
+      },
+      "without_skill": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "total": 4,
+        "tokens": 11655,
+        "duration_seconds": 38.5
+      },
+      "delta": "+0.25 (skill uses model_dump(exclude_unset=True) vs manual model_fields_set iteration)"
+    },
+    {
+      "eval_name": "reusable-constrained-types",
+      "with_skill": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "total": 4,
+        "tokens": 17659,
+        "duration_seconds": 41.4
+      },
+      "without_skill": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "total": 4,
+        "tokens": 12029,
+        "duration_seconds": 39.2
+      },
+      "delta": "0.0 (baseline also uses Annotated pattern; skill version adds strict/frozen ConfigDict)"
+    },
+    {
+      "eval_name": "typeadapter-hot-loop",
+      "with_skill": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "total": 3,
+        "tokens": 17577,
+        "duration_seconds": 38.9
+      },
+      "without_skill": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "total": 3,
+        "tokens": 10970,
+        "duration_seconds": 25.2
+      },
+      "delta": "0.0 (baseline already knows TypeAdapter + validate_json pattern)"
+    },
+    {
+      "eval_name": "computed-fields-serialization",
+      "with_skill": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "total": 4,
+        "tokens": 17514,
+        "duration_seconds": 39.2
+      },
+      "without_skill": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "total": 4,
+        "tokens": 10782,
+        "duration_seconds": 18.5
+      },
+      "delta": "+0.25 (baseline used invalid model_config() syntax instead of ConfigDict; skill version also uses cached_property and grouped serializer)"
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "overall_pass_rate": 1.0,
+      "passed": 20,
+      "total": 20,
+      "avg_tokens": 17680,
+      "avg_duration_seconds": 43.0
+    },
+    "without_skill": {
+      "overall_pass_rate": 0.8,
+      "passed": 16,
+      "total": 20,
+      "avg_tokens": 11275,
+      "avg_duration_seconds": 29.0
+    },
+    "delta_pass_rate": "+0.20",
+    "delta_tokens": "+6405 (57% more tokens due to reading skill + reference files)",
+    "delta_duration": "+14s avg (skill reading overhead)"
+  },
+  "analysis": {
+    "discriminating_assertions": [
+      "ConfigDict with strict=True — passed with skill, failed without in 2/5 evals",
+      "frozen=True — passed with skill, failed without in 2/5 evals",
+      "model_dump(exclude_unset=True) — skill used idiomatic pattern, baseline used manual iteration"
+    ],
+    "non_discriminating_assertions": [
+      "discriminated unions — baseline already knows this pattern",
+      "Literal types — baseline already knows this pattern",
+      "TypeAdapter at module level — baseline already knows this pattern",
+      "validate_json() — baseline already knows this pattern",
+      "Annotated constrained types — baseline already knows this pattern",
+      "@computed_field — baseline already knows this pattern"
+    ],
+    "key_finding": "The skill's main value-add is enforcing ConfigDict(strict=True, frozen=True, extra='forbid') as a default for API models, and using model_dump(exclude_unset=True) for PATCH. Most other Pydantic v2 patterns (discriminated unions, TypeAdapter, Annotated types, computed fields) are already in the model's baseline knowledge. The skill also prevented a syntax error (model_config() vs ConfigDict()) in eval 5."
+  }
+}

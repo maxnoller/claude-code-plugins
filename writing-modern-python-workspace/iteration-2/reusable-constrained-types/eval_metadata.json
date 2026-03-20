@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "reusable-constrained-types",
+  "prompt": "write a reusable set of constrained types for our codebase - we need: positive integers, non-empty strings, email addresses, money amounts (2 decimal places, positive), percentage (0-100), and a URL that must be https. Show how to use them in a model.",
+  "assertions": [
+    {"text": "Uses Annotated[type, ...] pattern for ALL constrained types, not custom classes", "type": "llm"},
+    {"text": "Types are defined as reusable aliases (e.g. PositiveInt = Annotated[int, Field(gt=0)])", "type": "llm"},
+    {"text": "Money type enforces exactly 2 decimal places and positive value", "type": "llm"},
+    {"text": "Types are demonstrated in a model to show reuse", "type": "llm"}
+  ]
+}

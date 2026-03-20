@@ -1,0 +1,27 @@
+{
+  "eval_id": 13,
+  "eval_name": "inline-snapshot-dirty-equals",
+  "prompt": "Write tests for this Pydantic model that creates users with auto-generated IDs and timestamps:\n\n```python\nfrom pydantic import BaseModel, ConfigDict, Field\nfrom datetime import datetime\nimport uuid\n\nclass User(BaseModel):\n    model_config = ConfigDict(strict=True, frozen=True)\n    id: str = Field(default_factory=lambda: str(uuid.uuid4()))\n    name: str\n    email: str\n    created_at: datetime = Field(default_factory=datetime.now)\n```",
+  "assertions": [
+    {
+      "text": "snapshot",
+      "type": "contains"
+    },
+    {
+      "text": "inline_snapshot",
+      "type": "contains"
+    },
+    {
+      "text": "dirty_equals",
+      "type": "contains"
+    },
+    {
+      "text": "Uses inline-snapshot's snapshot() for capturing the full model output and dirty-equals matchers (like IsStr, IsNow, or IsUUID) for non-deterministic auto-generated fields",
+      "type": "llm"
+    },
+    {
+      "text": "Does NOT write separate assertEqual or assert statements for each individual field \u2014 uses snapshot-based testing for the whole object",
+      "type": "llm"
+    }
+  ]
+}

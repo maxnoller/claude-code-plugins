@@ -1,0 +1,25 @@
+{
+  "run_id": "computed-fields-serialization-without_skill",
+  "expectations": [
+    {
+      "text": "Uses @computed_field decorator with @property for derived fields",
+      "passed": true,
+      "evidence": "Lines 14-27: @computed_field with @property on all three fields"
+    },
+    {
+      "text": "Uses frozen=True (required for immutability, also enables @cached_property if used)",
+      "passed": false,
+      "evidence": "Line 7: model_config = model_config(frozen=True) — this is INVALID syntax. model_config is not callable; should be ConfigDict(frozen=True). This code would raise an error at import time."
+    },
+    {
+      "text": "Uses field_serializer or PlainSerializer for dollar formatting",
+      "passed": true,
+      "evidence": "Lines 29-39: three separate @field_serializer decorators for each field"
+    },
+    {
+      "text": "Computed fields have explicit return type annotations",
+      "passed": true,
+      "evidence": "Lines 16, 21, 26: all have -> float"
+    }
+  ]
+}

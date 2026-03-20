@@ -1,0 +1,52 @@
+{
+  "expectations": [
+    {
+      "text": "ruff",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response prominently features ruff throughout, including installation and configuration"
+    },
+    {
+      "text": "flake8",
+      "type": "not_contains",
+      "passed": false,
+      "evidence": "Response mentions 'FBT (flake8-boolean-trap)' which contains 'flake8'"
+    },
+    {
+      "text": "black",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "The word 'black' does not appear anywhere in the response"
+    },
+    {
+      "text": "isort",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "The word 'isort' does not appear anywhere in the response"
+    },
+    {
+      "text": "select",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Response contains 'select = [\"ALL\"]' in the ruff lint configuration"
+    },
+    {
+      "text": "Configures ruff as the single linting and formatting tool, uses a broad rule selection (like select = [\"ALL\"] or a wide set of rules) and disables specific unwanted rules via ignore rather than cherry-picking rules to enable",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response uses ruff exclusively with select = [\"ALL\"] and then opts out via ignore list, explicitly explaining this philosophy: 'Starting from everything and opting out is stricter than opting in'"
+    },
+    {
+      "text": "Mentions per-file-ignores for test files (e.g., disabling assert-related or magic-value rules in tests)",
+      "type": "llm",
+      "passed": true,
+      "evidence": "Response includes per-file-ignores for 'tests/**' disabling S101 (assert), ANN (annotations), and PLR2004 (magic values)"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 1,
+    "total": 7,
+    "pass_rate": 0.86
+  }
+}

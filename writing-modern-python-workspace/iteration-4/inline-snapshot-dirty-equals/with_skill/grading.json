@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "snapshot",
+      "type": "contains",
+      "passed": true,
+      "evidence": "snapshot() is used multiple times in the response, e.g., 'assert user.model_dump() == snapshot({'"
+    },
+    {
+      "text": "inline_snapshot",
+      "type": "contains",
+      "passed": true,
+      "evidence": "'from inline_snapshot import snapshot' appears in the imports"
+    },
+    {
+      "text": "dirty_equals",
+      "type": "contains",
+      "passed": true,
+      "evidence": "'from dirty_equals import IsStr, IsNow, IsUUID' appears in the imports"
+    },
+    {
+      "text": "Uses inline-snapshot's snapshot() for capturing the full model output and dirty-equals matchers (like IsStr, IsNow, or IsUUID) for non-deterministic auto-generated fields",
+      "type": "llm",
+      "passed": true,
+      "evidence": "The test uses snapshot() to capture the full model_dump() output and uses IsStr(regex=...) for the UUID id field and IsNow() for the created_at timestamp \u2014 exactly the pattern described"
+    },
+    {
+      "text": "Does NOT write separate assertEqual or assert statements for each individual field \u2014 uses snapshot-based testing for the whole object",
+      "type": "llm",
+      "passed": true,
+      "evidence": "test_user_creation_defaults uses a single snapshot assertion on the full model_dump() dict rather than separate per-field assertions. The other tests test specific behaviors (uniqueness, explicit id, frozen, strict, missing fields) rather than duplicating field-by-field assertions."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

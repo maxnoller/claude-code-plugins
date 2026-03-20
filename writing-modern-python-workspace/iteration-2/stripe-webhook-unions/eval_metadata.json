@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "stripe-webhook-unions",
+  "prompt": "I need a pydantic model for our API - it's a webhook payload from Stripe. Has an event type (like 'invoice.paid', 'charge.failed' etc), a timestamp, an amount in cents, a currency code, and a nested customer object with id, email, and optional name. The event type should determine the shape of the data field - invoice events have line_items, charge events have a payment_method. Write the models.",
+  "assertions": [
+    {"text": "Uses discriminated union with Field(discriminator=...) for event type polymorphism", "type": "llm"},
+    {"text": "Uses Literal types for event_type field values", "type": "llm"},
+    {"text": "Uses ConfigDict with strict=True", "type": "llm"},
+    {"text": "Uses frozen=True or ConfigDict(frozen=True)", "type": "llm"},
+    {"text": "Does NOT use old v1 patterns like .dict(), .parse_obj(), Optional defaulting to None without explicit default", "type": "llm"}
+  ]
+}

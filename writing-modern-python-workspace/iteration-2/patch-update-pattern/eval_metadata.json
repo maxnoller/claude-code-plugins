@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "patch-update-pattern",
+  "prompt": "I'm building a FastAPI endpoint that accepts partial updates to a user profile (PATCH). The user has name, email, bio, avatar_url, and settings (a nested object with theme and notifications_enabled). Write me the pydantic models for the request and show how to get only the fields that were actually sent.",
+  "assertions": [
+    {"text": "Uses model_dump(exclude_unset=True) to get only sent fields", "type": "llm"},
+    {"text": "Has a separate update/patch model where fields are optional", "type": "llm"},
+    {"text": "Does NOT use exclude_none=True as the PATCH mechanism (exclude_unset is correct)", "type": "llm"},
+    {"text": "Uses model_validate or proper v2 methods, not v1 patterns", "type": "llm"}
+  ]
+}

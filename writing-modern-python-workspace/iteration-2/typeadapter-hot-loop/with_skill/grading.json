@@ -1,0 +1,8 @@
+{
+  "run_id": "typeadapter-hot-loop-with_skill",
+  "expectations": [
+    {"text": "TypeAdapter at module level", "passed": true, "evidence": "Line 23: _readings_adapter at module level"},
+    {"text": "Uses validate_json()", "passed": true, "evidence": "Line 34: _readings_adapter.validate_json(data)"},
+    {"text": "Does NOT instantiate in loop", "passed": true, "evidence": "Function only calls validate_json()"}
+  ]
+}

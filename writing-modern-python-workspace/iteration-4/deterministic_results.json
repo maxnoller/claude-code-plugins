@@ -1,0 +1,402 @@
+{
+  "config-file-parsing": [
+    {
+      "text": "BaseModel",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "strict=True",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "frozen=True",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ],
+  "inline-snapshot-api-response": [
+    {
+      "text": "snapshot",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "inline_snapshot",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "assertEqual",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    }
+  ],
+  "inline-snapshot-dirty-equals": [
+    {
+      "text": "snapshot",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "inline_snapshot",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "dirty_equals",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ],
+  "internal-data-container": [
+    {
+      "text": "dataclass",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ],
+  "minimal-error-handling": [
+    {
+      "text": "structlog",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ],
+  "modern-type-annotations": [
+    {
+      "text": "str | None",
+      "type": "contains",
+      "passed": false,
+      "evidence": "NOT found in response"
+    },
+    {
+      "text": "Optional",
+      "type": "not_contains",
+      "passed": false,
+      "evidence": "FOUND (should be absent) in response"
+    },
+    {
+      "text": "from typing import List",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    },
+    {
+      "text": "from typing import Dict",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    }
+  ],
+  "patch-exclude-unset": [
+    {
+      "text": "exclude_unset=True",
+      "type": "contains",
+      "passed": false,
+      "evidence": "NOT found in response"
+    },
+    {
+      "text": "model_dump",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ],
+  "pipeline-stage-boundaries": [
+    {
+      "text": "dataclass",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "BaseModel",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ],
+  "protocol-modern-types": [
+    {
+      "text": "Protocol",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "from typing import Optional",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    },
+    {
+      "text": "from typing import List",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    },
+    {
+      "text": "from typing import Dict",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    }
+  ],
+  "ruff-linting-setup": [
+    {
+      "text": "ruff",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "flake8",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    },
+    {
+      "text": "black",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    },
+    {
+      "text": "isort",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    },
+    {
+      "text": "select",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ],
+  "ruff-precommit": [
+    {
+      "text": "ruff",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "ruff check",
+      "type": "contains",
+      "passed": false,
+      "evidence": "NOT found in response"
+    },
+    {
+      "text": "ruff format",
+      "type": "contains",
+      "passed": false,
+      "evidence": "NOT found in response"
+    },
+    {
+      "text": "flake8",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    },
+    {
+      "text": "black",
+      "type": "not_contains",
+      "passed": false,
+      "evidence": "FOUND (should be absent) in response"
+    },
+    {
+      "text": "isort",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    }
+  ],
+  "simple-bool-tests": [
+    {
+      "text": "assert",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "inline_snapshot",
+      "type": "not_contains",
+      "passed": false,
+      "evidence": "FOUND (should be absent) in response"
+    },
+    {
+      "text": "snapshot",
+      "type": "not_contains",
+      "passed": false,
+      "evidence": "FOUND (should be absent) in response"
+    }
+  ],
+  "ty-type-checking": [
+    {
+      "text": "ty",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ],
+  "uv-dockerfile": [
+    {
+      "text": "ghcr.io/astral-sh/uv",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "uv sync",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "pip install",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    }
+  ],
+  "uv-monorepo-workspaces": [
+    {
+      "text": "uv",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "workspace",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "tool.uv.workspace",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "pyproject.toml",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ],
+  "uv-project-setup": [
+    {
+      "text": "uv init",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "uv add",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "pip install",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    },
+    {
+      "text": "poetry",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    },
+    {
+      "text": "requirements.txt",
+      "type": "not_contains",
+      "passed": true,
+      "evidence": "Correctly absent in response"
+    },
+    {
+      "text": "--group dev",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ],
+  "webhook-trust-boundary": [
+    {
+      "text": "BaseModel",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "ConfigDict",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "strict=True",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ],
+  "yagni-utility-module": [
+    {
+      "text": "YAGNI",
+      "type": "contains",
+      "passed": false,
+      "evidence": "NOT found in response"
+    }
+  ],
+  "yappi-async-profiling": [
+    {
+      "text": "yappi",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "wall",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "cProfile",
+      "type": "not_contains",
+      "passed": false,
+      "evidence": "FOUND (should be absent) in response"
+    }
+  ],
+  "yappi-cpu-profiling": [
+    {
+      "text": "yappi",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    },
+    {
+      "text": "cpu",
+      "type": "contains",
+      "passed": true,
+      "evidence": "Found in response"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "exclude_unset=True",
+      "type": "contains",
+      "passed": true,
+      "evidence": "model_dump(exclude_unset=True) appears in both the sent_fields() method and the explanation"
+    },
+    {
+      "text": "model_dump",
+      "type": "contains",
+      "passed": true,
+      "evidence": "model_dump appears multiple times in the response"
+    },
+    {
+      "text": "Uses model_dump(exclude_unset=True) to distinguish sent vs absent fields",
+      "type": "llm",
+      "passed": true,
+      "evidence": "The sent_fields() method uses model_dump(exclude_unset=True) and the response explicitly explains it distinguishes explicitly sent fields from absent ones"
+    },
+    {
+      "text": "Does NOT use exclude_none=True as the mechanism (explains why if mentioned)",
+      "type": "llm",
+      "passed": true,
+      "evidence": "exclude_none is only mentioned in the 'Why not exclude_none' section to explain its inadequacy \u2014 conflating null with absent \u2014 not used as the mechanism"
+    },
+    {
+      "text": "Uses ConfigDict with strict=True and extra='forbid'",
+      "type": "llm",
+      "passed": true,
+      "evidence": "model_config = ConfigDict(strict=True, frozen=True, extra=\"forbid\") includes both strict=True and extra='forbid'"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

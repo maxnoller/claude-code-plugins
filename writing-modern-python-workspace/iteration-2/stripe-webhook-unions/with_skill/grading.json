@@ -1,0 +1,10 @@
+{
+  "run_id": "stripe-webhook-unions-with_skill",
+  "expectations": [
+    {"text": "Uses discriminated union with Field(discriminator=...)", "passed": true, "evidence": "Line 64: Field(discriminator='event_type')"},
+    {"text": "Uses Literal types for event_type field values", "passed": true, "evidence": "Lines 47, 54: Literal['invoice.paid', ...] and Literal['charge.succeeded', ...]"},
+    {"text": "Uses ConfigDict with strict=True", "passed": true, "evidence": "All 6 models: ConfigDict(strict=True, frozen=True, extra='forbid')"},
+    {"text": "Uses frozen=True or ConfigDict(frozen=True)", "passed": true, "evidence": "All models frozen"},
+    {"text": "No v1 patterns", "passed": true, "evidence": "All v2: str | None = None on line 28"}
+  ]
+}

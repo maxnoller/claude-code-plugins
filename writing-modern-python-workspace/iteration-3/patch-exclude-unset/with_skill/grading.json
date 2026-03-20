@@ -1,0 +1,5 @@
+{"run_id": "patch-exclude-unset-with_skill", "expectations": [
+  {"text": "Uses model_dump(exclude_unset=True)", "passed": true, "evidence": "Line 18: self.model_dump(exclude_unset=True)"},
+  {"text": "Does NOT use exclude_none=True as the mechanism", "passed": true, "evidence": "Uses exclude_unset=True only"},
+  {"text": "Uses ConfigDict with strict=True and extra='forbid'", "passed": true, "evidence": "Line 9: ConfigDict(strict=True, frozen=True, extra='forbid')"}
+]}

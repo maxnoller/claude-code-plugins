@@ -1,0 +1,25 @@
+{
+  "run_id": "reusable-constrained-types-with_skill",
+  "expectations": [
+    {
+      "text": "Uses Annotated[type, ...] pattern for ALL constrained types, not custom classes",
+      "passed": true,
+      "evidence": "All 6 types use Annotated: PositiveInt, NonEmptyStr, Email, MoneyAmount, Percentage, HttpsUrl"
+    },
+    {
+      "text": "Types are defined as reusable aliases (e.g. PositiveInt = Annotated[int, Field(gt=0)])",
+      "passed": true,
+      "evidence": "Lines 11, 13, 15, 22, 28, 38: all defined as module-level type aliases"
+    },
+    {
+      "text": "Money type enforces exactly 2 decimal places and positive value",
+      "passed": true,
+      "evidence": "Line 24: Field(gt=0, decimal_places=2) on Decimal base type"
+    },
+    {
+      "text": "Types are demonstrated in a model to show reuse",
+      "passed": true,
+      "evidence": "ProductListing model on line 43 uses all 6 constrained types"
+    }
+  ]
+}

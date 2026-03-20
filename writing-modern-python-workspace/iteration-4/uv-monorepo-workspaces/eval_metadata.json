@@ -1,0 +1,27 @@
+{
+  "eval_id": 7,
+  "eval_name": "uv-monorepo-workspaces",
+  "prompt": "I have a monorepo with a shared library and two apps (an API server and a CLI tool). Both apps depend on the shared library. How should I organize dependencies?",
+  "assertions": [
+    {
+      "text": "uv",
+      "type": "contains"
+    },
+    {
+      "text": "workspace",
+      "type": "contains"
+    },
+    {
+      "text": "tool.uv.workspace",
+      "type": "contains"
+    },
+    {
+      "text": "pyproject.toml",
+      "type": "contains"
+    },
+    {
+      "text": "Recommends uv workspaces for monorepo dependency management and explains the workspace member structure",
+      "type": "llm"
+    }
+  ]
+}
