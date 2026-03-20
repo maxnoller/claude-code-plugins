@@ -1,6 +1,6 @@
 ---
 name: writing-modern-python
-description: Opinionated modern Python patterns and conventions (2026). Use this skill whenever writing, reviewing, or suggesting Python code. Trigger on any Python development task — writing tests, creating models, setting up projects, choosing libraries, structuring code, configuring tooling, or making style decisions. Also trigger when the user mentions "modern python", "python best practices", "how should I write this", "python patterns", inline-snapshot, dirty-equals, pydantic, BaseModel, model_validate, field_validator, model_validator, TypeAdapter, discriminated unions, pytest, ruff, structlog, uv, ty, pyrefly, type checking, linting, or formatting. Even if the user doesn't explicitly ask for style guidance, apply these patterns when generating Python code.
+description: Opinionated modern Python patterns and conventions (2026). Use this skill whenever writing, reviewing, or suggesting Python code. Trigger on any Python development task — writing tests, creating models, setting up projects, choosing libraries, structuring code, configuring tooling, or making style decisions. Also trigger when the user mentions "modern python", "python best practices", "how should I write this", "python patterns", inline-snapshot, dirty-equals, pydantic, pytest, ruff, structlog, uv, ty, pyrefly, type checking, linting, or formatting. Even if the user doesn't explicitly ask for style guidance, apply these patterns when generating Python code.
 ---
 
 # Writing Modern Python (2026)
@@ -95,32 +95,24 @@ See `references/tooling-typechecking.md` for configuration patterns, strictness 
 
 ## Data modeling: Pydantic
 
-Use Pydantic v2 for any data that crosses a boundary — API input/output, config files, pipeline stages. Default to `ConfigDict(strict=True, frozen=True)` for API models so type bugs and mutations get caught at the boundary. Build reusable constrained types with `Annotated` — define `PositiveInt` or `Email` once and import everywhere.
+Use Pydantic when data crosses a trust boundary — API input, config files, message queues, pipeline stages. Don't use it for internal data containers where a `dataclass` or `NamedTuple` would do. The question is "does this data need validation?" not "does this data have fields?"
+
+When you do use Pydantic, always set `ConfigDict(strict=True, frozen=True, extra="forbid")`. Strict catches silent coercion (`"123"` quietly becoming `int`), frozen prevents mutation after validation, extra rejects unknown fields. Opt out per-field, not the other way around.
 
 ```python
-from typing import Annotated
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict
 
-PositiveInt = Annotated[int, Field(gt=0)]
+class WebhookPayload(BaseModel):
+    model_config = ConfigDict(strict=True, frozen=True, extra="forbid")
 
-class Order(BaseModel):
-    model_config = ConfigDict(strict=True, frozen=True)
-
-    id: PositiveInt
-    total: float = Field(gt=0)
-    status: str
-
-    @field_validator("status")
-    @classmethod
-    def valid_status(cls, v: str) -> str:
-        if v not in {"pending", "shipped", "delivered"}:
-            raise ValueError(f"invalid status: {v}")
-        return v
+    event_type: str
+    timestamp: datetime
+    amount: int
 ```
 
-Use `model_validate_json()` instead of `json.loads()` + `model_validate()` — it's one Rust pass. Use `model_dump(exclude_unset=True)` for PATCH endpoints. Use discriminated unions (`Field(discriminator="type")`) for polymorphic models — they're O(1) and give clear errors. Create `TypeAdapter` instances at module level, never in hot loops.
+Build reusable constrained types with `Annotated` — define `PositiveInt` or `Email` once, import everywhere. Don't inline `Field(gt=0)` repeatedly.
 
-See `references/modeling-pydantic.md` for validators, serialization, computed fields, strict mode, TypeAdapter, and discriminated union patterns.
+See `references/modeling-pydantic.md` for when-to-use decision guide and the opinionated defaults.
 
 ## Testing
 
