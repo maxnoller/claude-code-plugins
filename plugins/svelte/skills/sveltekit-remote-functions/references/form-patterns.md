@@ -79,7 +79,8 @@ createPost.preflight(v.object({
 For validation that requires server state (uniqueness checks, stock levels):
 
 ```ts
-import { form, invalid } from '$app/server';
+import { invalid } from '@sveltejs/kit';
+import { form } from '$app/server';
 
 export const buyHotcakes = form(
   v.object({ qty: v.pipe(v.number(), v.minValue(1)) }),
