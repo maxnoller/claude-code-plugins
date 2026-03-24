@@ -1,6 +1,7 @@
 {
   "name": "svelte",
-  "description": "Modern Svelte 5 and SvelteKit development assistant with runes patterns, remote functions, testing, performance optimization, proactive code review, and LSP support.",
+  "version": "0.2.0",
+  "description": "Svelte 5 and SvelteKit development with up-to-date patterns for runes, remote functions, async await expressions, attachments, shadcn-svelte, Tailwind CSS v4, and bits-ui.",
   "author": {
     "name": "max"
   },
@@ -10,9 +11,13 @@
     "sveltekit",
     "runes",
     "remote-functions",
+    "async",
+    "attachments",
+    "shadcn-svelte",
+    "bits-ui",
+    "tailwindcss",
     "testing",
-    "performance",
-    "lsp"
+    "performance"
   ],
   "lspServers": {
     "svelte": {
