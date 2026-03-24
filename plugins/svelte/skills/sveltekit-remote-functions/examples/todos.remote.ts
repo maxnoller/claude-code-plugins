@@ -1,68 +1,88 @@
 // src/lib/todos.remote.ts
-// SvelteKit Remote Functions for Todo CRUD operations
-// Requires: kit.experimental.remoteFunctions = true in svelte.config.js
+// Full CRUD with query, command, query.batch, and Valibot validation
+// Requires: kit.experimental.remoteFunctions = true
 
-import { query, command } from '$app/server';
+import { query, command, getRequestEvent } from '$app/server';
+import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { sql } from '$lib/server/database';
+import { db } from '$lib/server/database';
 
-// Query: Read-only server data (no arguments)
+// --- Auth helper ---
+
+function requireUser() {
+	const { locals } = getRequestEvent();
+	if (!locals.user) error(401, 'Unauthorized');
+	return locals.user;
+}
+
+// --- Queries ---
+
 export const getTodos = query(async () => {
-    const todos = await sql`
+	const user = requireUser();
+	return await db.sql`
 		SELECT id, text, done, created_at
 		FROM todos
+		WHERE user_id = ${user.id}
 		ORDER BY created_at DESC
 	`;
-    return todos;
 });
 
-// Query with validated argument
-export const getTodoById = query(
-    v.string(), // Validate that id is a string
-    async (id) => {
-        const [todo] = await sql`
-			SELECT * FROM todos WHERE id = ${id}
-		`;
-        return todo ?? null;
-    }
-);
+export const getTodoById = query(v.string(), async (id) => {
+	const user = requireUser();
+	const [todo] = await db.sql`
+		SELECT * FROM todos WHERE id = ${id} AND user_id = ${user.id}
+	`;
+	if (!todo) error(404, 'Todo not found');
+	return todo;
+});
 
-// Command: Mutations (with validated input)
+// --- Batched query (solves N+1 for lists) ---
+
+export const getTodosByIds = query.batch(v.string(), async (ids) => {
+	const user = requireUser();
+	const todos = await db.sql`
+		SELECT * FROM todos
+		WHERE id = ANY(${ids}) AND user_id = ${user.id}
+	`;
+	const lookup = new Map(todos.map((t: { id: string }) => [t.id, t]));
+	return (id: string) => lookup.get(id) ?? null;
+});
+
+// --- Commands ---
+
 const CreateTodoSchema = v.object({
-    text: v.pipe(v.string(), v.minLength(1, 'Todo text is required'))
+	text: v.pipe(v.string(), v.minLength(1, 'Todo text is required'))
 });
 
-export const createTodo = command(
-    CreateTodoSchema,
-    async ({ text }) => {
-        const [todo] = await sql`
-			INSERT INTO todos (text, done)
-			VALUES (${text}, false)
-			RETURNING *
-		`;
-        return todo;
-    }
-);
+export const createTodo = command(CreateTodoSchema, async ({ text }) => {
+	const user = requireUser();
+	const [todo] = await db.sql`
+		INSERT INTO todos (text, done, user_id)
+		VALUES (${text}, false, ${user.id})
+		RETURNING *
+	`;
+	// Single-flight: refresh the list in the same response
+	await getTodos().refresh();
+	return todo;
+});
 
-// Toggle todo completion
-export const toggleTodo = command(
-    v.string(), // id
-    async (id) => {
-        const [todo] = await sql`
-			UPDATE todos
-			SET done = NOT done
-			WHERE id = ${id}
-			RETURNING *
-		`;
-        if (!todo) throw new Error('Todo not found');
-        return todo;
-    }
-);
+export const toggleTodo = command(v.string(), async (id) => {
+	const user = requireUser();
+	const [todo] = await db.sql`
+		UPDATE todos SET done = NOT done
+		WHERE id = ${id} AND user_id = ${user.id}
+		RETURNING *
+	`;
+	if (!todo) error(404, 'Todo not found');
+	// Update the specific todo cache without refetching
+	await getTodoById(id).set(todo);
+	return todo;
+});
 
-// Delete todo
-export const deleteTodo = command(
-    v.string(), // id
-    async (id) => {
-        await sql`DELETE FROM todos WHERE id = ${id}`;
-    }
-);
+export const deleteTodo = command(v.string(), async (id) => {
+	const user = requireUser();
+	await db.sql`
+		DELETE FROM todos WHERE id = ${id} AND user_id = ${user.id}
+	`;
+	await getTodos().refresh();
+});
