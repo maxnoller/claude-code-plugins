@@ -2,98 +2,83 @@
 
 ## File Types
 
-| Extension | Purpose | Example |
+| Extension | When to use | Example |
 |---|---|---|
-| `.svelte` | UI components (HTML + CSS + logic) | `Button.svelte` |
-| `.svelte.ts` | Modules that **use runes directly** (`$state`, `$derived`, `$effect`) | `counter.svelte.ts` |
-| `.ts` | Regular TypeScript (types, utils, API clients, constants) | `types.ts`, `api.ts` |
+| `.svelte` | UI components | `Button.svelte` |
+| `.svelte.ts` | Modules that **directly declare runes** (`$state`, `$derived`, `$effect`) | `use-pagination.svelte.ts` |
+| `.ts` | Everything else (types, utils, API clients, constants, schemas) | `types.ts` |
 
-**Rule:** Only rename to `.svelte.ts` when the file directly declares runes. Files that import rune-using functions stay `.ts`.
+Only use `.svelte.ts` when the file directly declares runes. Files that merely import rune-using functions stay `.ts`.
 
 ## Project Structure
 
 ```
 src/
 ├── lib/
-│   ├── components/
-│   │   └── ui/              # shadcn-svelte primitives (auto-generated)
-│   ├── features/            # Feature modules (shared across routes)
-│   │   └── invoice/
-│   │       ├── invoice-state.svelte.ts
-│   │       ├── invoice-api.ts
-│   │       ├── invoice-types.ts
-│   │       ├── InvoiceList.svelte
-│   │       └── index.ts
+│   ├── components/ui/       # shadcn-svelte primitives
+│   ├── components/           # Shared app components
 │   ├── hooks/               # Reusable reactive logic (.svelte.ts)
 │   ├── server/              # Server-only code
-│   └── utils/               # Pure utilities (.ts)
+│   └── utils/               # Pure utilities
 ├── routes/
 │   ├── dashboard/
 │   │   ├── +page.svelte
 │   │   ├── +page.server.ts
-│   │   ├── dashboard-state.svelte.ts   # Route-colocated logic
-│   │   └── DashboardChart.svelte       # Route-specific component
+│   │   └── DashboardChart.svelte  # Route-colocated component
 ```
 
-**Colocate first, extract when shared.** Keep components and logic next to the route that uses them. Move to `$lib/` only when genuinely used by multiple routes.
+**Colocate first, extract when shared.** Keep components next to the route that uses them. Move to `$lib/` only when genuinely used by multiple routes.
 
-## State Patterns (Decision Guide)
+## State Management
 
-### 1. Inline State (default)
+### The Svelte Philosophy
 
-For simple component-local state, keep it inline:
+State lives in components. The `.svelte` file format exists so state, logic, and markup colocate — that colocation is the feature. A 350-line component with 200 lines of script and 150 lines of template is normal and healthy in Svelte.
 
-```svelte
-<script lang="ts">
-  let count = $state(0);
-  let doubled = $derived(count * 2);
-</script>
-```
+### When to Extract State to .svelte.ts
 
-Use when: component is under ~200 lines, state is only used here.
-
-### 2. Factory Function ("composable")
-
-The standard pattern for extracting reactive logic. Pass reactive props as **getter functions** so the factory tracks changes (endorsed by Rich Harris as "simple, clear, debuggable, composable"):
+Use `.svelte.ts` factory functions for **reusable reactive logic** — patterns used across multiple components:
 
 ```ts
-// todo-state.svelte.ts
-export function createTodoState(getFilter: () => string) {
-  let todos = $state<Todo[]>([]);
-  let filtered = $derived(
-    getFilter() === 'all' ? todos : todos.filter(t => t.status === getFilter())
-  );
-  let remaining = $derived(filtered.filter(t => !t.done).length);
+// use-pagination.svelte.ts — reusable across many list views
+export function usePagination(getTotal: () => number, pageSize = 20) {
+  let page = $state(0);
+  let totalPages = $derived(Math.ceil(getTotal() / pageSize));
+  let hasNext = $derived(page < totalPages - 1);
 
   return {
-    get todos() { return filtered; },
-    get remaining() { return remaining; },
-    add(text: string) { todos.push({ text, done: false, status: 'active' }); },
-    toggle(i: number) { todos[i].done = !todos[i].done; },
+    get page() { return page; },
+    get totalPages() { return totalPages; },
+    get hasNext() { return hasNext; },
+    next() { if (hasNext) page++; },
+    prev() { if (page > 0) page--; },
   };
 }
 ```
 
-```svelte
-<script lang="ts">
-  import { createTodoState } from './todo-state.svelte';
-  let filter = $state('all');
-  const todos = createTodoState(() => filter);
-</script>
-```
+Pass reactive values as getter functions (`() => count`) for primitives, since reactivity persists through property access. Object `$state` proxies can be passed directly because property access on proxies is tracked.
 
-Use when: logic exceeds ~200 lines, or the same logic pattern is reused across multiple components.
+**Don't destructure the return value** — `const { page } = usePagination()` breaks reactivity. Access through the object.
 
-**Getter function rule:** Reactivity persists through property access, not value passing. Use `() => prop` for primitives and props that change by reference. For object `$state` proxies, passing directly works because property access is tracked.
+### When NOT to Extract
 
-**Always expose state via getters/setters** — never return raw `$state` variables. Destructuring (`const { count } = createCounter()`) breaks reactivity.
+Don't extract page-local state into a factory just to make the component shorter. If the state is only used by one component, it belongs in that component. A large `<script>` block is fine — extract **visual sub-components** instead.
 
-### 3. Reactive Class (complex domain)
+### State Patterns Quick Reference
 
-For domain models with mixed reactive and non-reactive state:
+| Scenario | Approach |
+|---|---|
+| Component-local state | `$state` / `$derived` inline in the component |
+| Reusable reactive logic | Factory function in `.svelte.ts` |
+| Complex domain model with private state | Reactive class with `$state` fields |
+| Global app config | Exported `$state` object in `.svelte.ts` |
+| Per-user state in SSR | `createContext` (Svelte 5.40+) |
+
+### Reactive Classes
+
+For domain models that benefit from encapsulation:
 
 ```ts
-// canvas-state.svelte.ts
 export class CanvasState {
   width = $state(800);
   height = $state(600);
@@ -108,125 +93,76 @@ export class CanvasState {
 }
 ```
 
-Use when: need selective reactivity (only some fields tracked), encapsulation with private fields, or modeling a complex domain entity.
+Class `$state` fields become getter/setter pairs on the prototype. `$state.snapshot()` cannot access private fields.
 
-**Gotcha:** `$state()` class fields become getter/setter pairs on the prototype. `$state.snapshot()` cannot access private fields.
-
-### 4. Shared Reactive Object (singleton)
-
-For global app config or feature flags:
+### Context API (SSR-safe)
 
 ```ts
-// config.svelte.ts
-export const config = $state({ theme: 'dark', locale: 'en' });
-```
-
-Use when: truly global, non-user-specific state. **Never for user data in SSR** — shared module state leaks between requests.
-
-### 5. Context API (SSR-safe)
-
-For per-request, per-subtree state. Use `createContext` (Svelte 5.40+):
-
-```ts
-// src/lib/context/user.ts
 import { createContext } from 'svelte';
-
-interface UserState { name: string; email: string; }
-export const [getUser, setUser] = createContext<UserState>();
+export const [getUser, setUser] = createContext<User>();
 ```
+
+Use for subtree-scoped state or any user-specific data in SSR apps. Never use module-level `$state` for user-specific data — it leaks between requests.
+
+## Component Extraction
+
+When a component grows unwieldy, extract **visual sub-components with narrow props**:
 
 ```svelte
-<!-- +layout.svelte -->
-<script>
-  import { setUser } from '$lib/context/user';
-  let { data, children } = $props();
-  let user = $state(data.user);  // Wrap in $state for reactivity
-  setUser(user);
+<!-- +page.svelte stays the owner of all state -->
+<script lang="ts">
+  let services = $state(data.services);
+  let searchTerm = $state('');
+  let deleteTarget = $state<string | null>(null);
+  // ... all state lives here
 </script>
-{@render children()}
+
+<!-- Sub-components receive only what they need -->
+<FilterBar bind:searchTerm {statusOptions} />
+<ServiceGrid {filteredServices} onSelect={(s) => goto(s.href)} />
+<DeleteConfirm
+  bind:open={deleteTarget !== null}
+  serviceName={deleteTarget}
+  onConfirm={() => handleDelete(deleteTarget)}
+/>
 ```
 
-```svelte
-<!-- Any descendant -->
-<script>
-  import { getUser } from '$lib/context/user';
-  const user = getUser();  // Typed, throws if missing
-</script>
-```
+Each sub-component has a clear, narrow interface. The page component owns the state and coordinates between children.
 
-Use when: state scoped to a component subtree, or any user-specific data in SSR apps.
+### Extraction Guidelines
 
-### Decision Matrix
+Extract a template block into a sub-component when it:
+- Is reused in multiple places
+- Has its own imports (icons, libraries, UI primitives)
+- Represents a self-contained concern (a filter bar, a dialog, an empty state)
 
-| Scenario | Pattern | File |
-|---|---|---|
-| Simple component state (<200 lines) | Inline `$state` | `.svelte` |
-| Extracted component logic | Factory function | `.svelte.ts` colocated |
-| Reusable reactive logic | Factory function | `$lib/hooks/*.svelte.ts` |
-| Complex domain model | Reactive class | `.svelte.ts` |
-| Global app config (no SSR concern) | Shared `$state` object | `$lib/state/*.svelte.ts` |
-| User-specific state (SSR) | `createContext` | `$lib/context/*.ts` |
-| Pure utilities, types, constants | Regular exports | `.ts` |
-
-## Feature Folder Pattern
-
-For non-trivial features shared across routes:
-
-```
-src/lib/features/invoice/
-├── invoice-state.svelte.ts     # Reactive state & business logic
-├── invoice-api.ts              # API calls (plain fetch, no runes)
-├── invoice-types.ts            # TypeScript interfaces
-├── invoice-schema.ts           # Zod/Valibot validation schemas
-├── InvoiceList.svelte          # UI component
-├── InvoiceDetail.svelte        # UI component
-├── InvoiceForm.svelte          # UI component
-└── index.ts                    # Barrel export
-```
-
-**Naming conventions:**
-- State files: `kebab-case.svelte.ts` (e.g., `invoice-state.svelte.ts`)
-- Components: `PascalCase.svelte` (e.g., `InvoiceList.svelte`)
-- Types/utils: `kebab-case.ts` (e.g., `invoice-types.ts`)
+Keep inline when it's just a simple conditional or loop body with no independent logic.
 
 ## Extending shadcn-svelte Components
 
-To add a variant to an existing component:
+Add variants directly in the component file:
 
 ```svelte
-<!-- src/lib/components/ui/button/button.svelte -->
 <script lang="ts" module>
   export const buttonVariants = tv({
-    base: "...",
     variants: {
       variant: {
         default: "...",
-        // Add your custom variant:
-        brand: "bg-brand text-brand-foreground hover:bg-brand/90",
-      },
-      size: {
-        default: "h-10 px-4",
-        // Add your custom size:
-        xl: "h-14 px-8 text-lg",
+        brand: "bg-brand text-brand-foreground hover:bg-brand/90",  // custom
       },
     },
   });
 </script>
 ```
 
-To wrap with additional behavior:
+Wrap with additional behavior by composing:
 
 ```svelte
-<!-- src/lib/components/confirm-button.svelte -->
 <script lang="ts">
-  import { Button, type ButtonProps } from "$lib/components/ui/button/index.js";
+  import { Button } from "$lib/components/ui/button/index.js";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
 
-  let { children, onConfirm, message = "Are you sure?", ...rest }: ButtonProps & {
-    onConfirm: () => void;
-    message?: string;
-  } = $props();
-
+  let { children, onConfirm, message = "Are you sure?", ...rest } = $props();
   let open = $state(false);
 </script>
 
@@ -237,173 +173,11 @@ To wrap with additional behavior:
     {/snippet}
   </Dialog.Trigger>
   <Dialog.Content>
-    <Dialog.Header>
-      <Dialog.Title>Confirm</Dialog.Title>
-      <Dialog.Description>{message}</Dialog.Description>
-    </Dialog.Header>
+    <Dialog.Header><Dialog.Title>Confirm</Dialog.Title></Dialog.Header>
     <Dialog.Footer>
       <Button variant="outline" onclick={() => open = false}>Cancel</Button>
       <Button onclick={() => { onConfirm(); open = false; }}>Confirm</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>
-```
-
-## Component Decomposition
-
-When to extract a template block into a sub-component vs. keep inline:
-
-| Extract to sub-component | Keep inline |
-|---|---|
-| Reused in multiple places | Used only once |
-| Has its own imports (icons, libraries) | Pure HTML with parent data |
-| Would benefit from testing in isolation | Tightly coupled to surrounding template |
-| Self-contained behavior (e.g., a filter bar) | Simple conditional or loop body |
-| Exceeds ~100 lines with own state/logic | Presentation only, no state |
-
-**Svelte 5 gives two extraction axes:**
-1. **Extract logic** → `.svelte.ts` factory function (keeps template in parent)
-2. **Extract template** → sub-component `.svelte` file (moves markup out)
-
-Prefer extracting logic first. Only extract template blocks when they have independent concerns (own imports, own state, or reusability).
-
-## Passing State to Child Components
-
-When extracting sub-components from a page, decide how to pass state:
-
-### Single state object (route-colocated components)
-
-For components colocated with a route that won't be reused elsewhere, passing the full state object is acceptable and avoids prop drilling:
-
-```svelte
-<!-- +page.svelte -->
-<script>
-  const state = createPageState(() => data);
-</script>
-
-<PageToolbar {state} />
-<PageContent {state} />
-<PageDialogs {state} />
-```
-
-```svelte
-<!-- PageToolbar.svelte -->
-<script lang="ts">
-  import type { PageState } from './page-state.svelte';
-  let { state }: { state: PageState } = $props();
-</script>
-```
-
-### Individual typed props (reusable components)
-
-For shared/reusable components, prefer explicit props for encapsulation:
-
-```svelte
-<ServiceCard
-  svc={service}
-  status={status}
-  onRestart={() => restart(service.id)}
-/>
-```
-
-### Context (deep hierarchies)
-
-For deeply nested component trees where prop drilling becomes unwieldy, use `createContext` (Svelte 5.40+).
-
-## DOM Refs in Extracted State
-
-When a factory function needs access to DOM elements (e.g., for scroll position, canvas, focus management), use a `$state` ref object:
-
-```ts
-// editor-state.svelte.ts
-export function createEditorState() {
-  let canvasEl = $state<HTMLCanvasElement>();
-
-  $effect(() => {
-    if (!canvasEl) return;
-    const ctx = canvasEl.getContext('2d');
-    // setup...
-    return () => { /* cleanup */ };
-  });
-
-  return {
-    get canvasEl() { return canvasEl; },
-    set canvasEl(v) { canvasEl = v; },
-    // ...
-  };
-}
-```
-
-```svelte
-<canvas bind:this={state.canvasEl}></canvas>
-```
-
-The getter/setter pair allows `bind:this` to write the element reference into the state, which the factory's `$effect` can then react to. When the element is destroyed (conditional rendering), `bind:this` sets it to `undefined`, triggering effect cleanup.
-
-## Structuring Large State Objects
-
-When a factory returns >20 properties, consider these strategies:
-
-### Split into composable sub-factories
-
-```ts
-// page-state.svelte.ts
-export function createPageState(getData: () => Data) {
-  const filters = createFilterState(getData);
-  const zoom = createZoomState();
-  const dialogs = createDialogState();
-
-  return { filters, zoom, dialogs, /* page-level concerns */ };
-}
-```
-
-Access as `state.filters.query`, `state.zoom.level`, `state.dialogs.confirmOpen`.
-
-### Use a reactive class for complex domain state
-
-When the state has private internals, validation in setters, or a large surface area, a class provides better organization than a factory:
-
-```ts
-export class EditorState {
-  // Public reactive state
-  width = $state(800);
-  height = $state(600);
-
-  // Private non-reactive state
-  #undoStack: Command[] = [];
-
-  // Derived
-  area = $derived(this.width * this.height);
-
-  // Methods grouped by concern
-  undo() { /* ... */ }
-  redo() { /* ... */ }
-}
-```
-
-### Decision guide
-
-| Return object size | Approach |
-|---|---|
-| <10 properties | Single factory function |
-| 10-25 properties | Single factory, group related actions |
-| 25+ properties | Split into sub-factories or use a class |
-
-## Testing After Refactoring
-
-When extracting components or logic:
-
-1. **Run existing tests first** to establish a baseline (some may already be failing)
-2. **Preserve `data-testid` attributes** exactly when moving template to sub-components
-3. **Run tests after** to verify zero regressions
-4. **Consider unit-testing the factory** directly for complex business logic — the factory is a plain function that can be tested without rendering
-
-```ts
-// dashboard-state.svelte.test.ts
-import { createDashboardState } from './dashboard-state.svelte';
-
-it('sorts by date descending by default', () => {
-  const state = createDashboardState(() => mockData);
-  expect(state.sorted[0].date).toBe('2024-12-01');
-});
 ```

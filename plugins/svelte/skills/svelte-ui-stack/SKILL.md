@@ -5,180 +5,87 @@ description: This skill should be used when the user asks to "build a page", "ad
 
 # Svelte UI Stack
 
-Build production UIs in Svelte 5 using shadcn-svelte, bits-ui, and Tailwind CSS v4. This skill covers component selection, architecture, and the ecosystem glue that ties everything together.
+Build production UIs in Svelte 5 using shadcn-svelte, bits-ui, and Tailwind CSS v4.
 
-## Core Principles
+## What Claude Doesn't Know (training data gaps)
 
-### 1. Always Use shadcn-svelte First
+These are the things that have changed since training cutoff. Everything else (component design, software architecture, state management principles) — Claude already knows.
 
-Before building any UI element, check if shadcn-svelte has it. The library covers: Accordion, Alert, Avatar, Badge, Button, Calendar, Card, Checkbox, Collapsible, Command, Dialog, Drawer, Dropdown Menu, Form, Input, Label, Pagination, Popover, Progress, Radio Group, ScrollArea, Select, Separator, Sheet, Skeleton, Slider, Sonner (toasts), Spinner, Switch, Table, Tabs, Textarea, Toggle, Tooltip.
+### Svelte 5 Syntax (never use Svelte 4)
 
-```bash
-# Install what you need
-pnpm dlx shadcn-svelte@latest add button dialog form input
-```
+| Correct (Svelte 5) | Wrong (Svelte 4) |
+|---|---|
+| `let { x } = $props()` | `export let x` |
+| `let { ...rest } = $props()` | `$$restProps` |
+| `{@render children?.()}` | `<slot />` |
+| `{@render header?.()}` | `<slot name="header" />` |
+| `onclick={handler}` | `on:click={handler}` |
+| Callback props | `createEventDispatcher` |
+| `$bindable()` | Just `export let` for two-way |
+| `ref = $bindable(null)` | `bind:this` from parent |
 
-When shadcn-svelte has the component: use it, customize variants if needed.
-When it doesn't: build with bits-ui primitives + Tailwind, following the same patterns.
-
-### 2. Separate Logic from UI
-
-Components should be thin UI shells. Extract reactive logic into colocated `.svelte.ts` files.
-
-**The 200-line guideline:** When a component approaches ~200 lines, extract business logic into a colocated `.svelte.ts` module. The same runes (`$state`, `$derived`, `$effect`) work identically in both `.svelte` and `.svelte.ts` files — no refactoring needed.
-
-```
-routes/dashboard/
-├── +page.svelte              # Thin: imports state, renders UI
-├── +page.server.ts           # Load function
-├── dashboard-state.svelte.ts # Fat: all reactive logic
-├── DashboardChart.svelte     # Route-specific component
-└── DashboardFilters.svelte
-```
-
-The factory function pattern is the standard way to externalize logic. Pass reactive props as **getter functions** so the factory tracks changes (this pattern is endorsed by Rich Harris):
+### Tailwind CSS v4 (no config file, no PostCSS)
 
 ```ts
-// dashboard-state.svelte.ts
-export function createDashboardState(getData: () => DashboardData) {
-  let sortField = $state<'date' | 'amount'>('date');
-  let sorted = $derived(
-    getData().items.toSorted((a, b) => a[sortField] > b[sortField] ? 1 : -1)
-  );
-
-  return {
-    get sorted() { return sorted; },
-    get sortField() { return sortField; },
-    set sortField(v) { sortField = v; },
-  };
-}
-```
-
-```svelte
-<!-- +page.svelte — thin shell -->
-<script lang="ts">
-  import { createDashboardState } from './dashboard-state.svelte';
-  let { data } = $props();
-  const dashboard = createDashboardState(() => data);
-</script>
-```
-
-**Why getter functions?** Reactivity persists through property access (getters and object properties), not through direct value passing. Passing `data` directly would capture the initial value; `() => data` ensures the factory always reads the current value.
-
-**For object props**, passing the `$state` proxy directly works because property access is tracked. The getter pattern is needed specifically for primitives or when the prop reference itself changes.
-
-**Never destructure reactive return values** — `const { count } = createCounter()` breaks reactivity. Always access through the object: `counter.count`.
-
-For the full architecture guide (reactive classes, context API, feature folders, decision matrix), see `references/component-architecture.md`.
-
-### 3. Svelte 5 Patterns Only
-
-Every component must use these patterns — never the Svelte 4 equivalents:
-
-| Pattern | Correct (Svelte 5) | Wrong (Svelte 4) |
-|---|---|---|
-| Props | `let { x } = $props()` | `export let x` |
-| Rest props | `let { ...rest } = $props()` | `$$restProps` |
-| Children | `{@render children?.()}` | `<slot />` |
-| Named slots | `{@render header?.()}` | `<slot name="header" />` |
-| Events | `onclick={handler}` | `on:click={handler}` |
-| Dispatch | Callback props | `createEventDispatcher` |
-| Bindable | `$bindable()` | Just `export let` |
-| Ref | `ref = $bindable(null)` | `bind:this` from parent |
-
-### 4. Tailwind v4 — CSS-First Config
-
-No `tailwind.config.ts`. No PostCSS. Configuration lives in CSS:
-
-```ts
-// vite.config.ts — use the Vite plugin
+// vite.config.ts — Vite plugin, not PostCSS
 import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   plugins: [tailwindcss(), sveltekit()],
 });
 ```
 
-```css
-/* app.css — all config here */
-@import "tailwindcss";
-@import "tw-animate-css";
-@custom-variant dark (&:is(.dark *));
+All configuration in CSS. Colors in OKLCH. `tw-animate-css` replaces `tailwindcss-animate`. See `references/tailwind-v4.md` for the full theme setup.
 
-:root {
-  --primary: oklch(0.205 0 0);        /* OKLCH, not HSL */
-  --primary-foreground: oklch(0.985 0 0);
-  /* ... */
-}
+### Package Renames
 
-@theme inline {
-  --color-primary: var(--primary);     /* Maps CSS vars to Tailwind classes */
-  --color-primary-foreground: var(--primary-foreground);
-}
+| Current | Deprecated |
+|---|---|
+| `tailwind-variants` (`tv()`) | `class-variance-authority` (`cva`) |
+| `@lucide/svelte` (deep imports: `@lucide/svelte/icons/check`) | `lucide-svelte` (barrel imports) |
+| `tw-animate-css` | `tailwindcss-animate` |
+| bits-ui `Command` | `cmdk-sv` |
+| `@tanstack/table-core` + `createSvelteTable` | `svelte-headless-table` |
+| `zod4` / `zod4Client` (superforms adapters) | `zod` / `zodClient` |
+
+## shadcn-svelte
+
+### Installation & CLI
+
+```bash
+pnpm dlx shadcn-svelte@latest init
+pnpm dlx shadcn-svelte@latest add button dialog form input
+pnpm dlx shadcn-svelte@latest add --all
 ```
 
-For the full Tailwind v4 setup, theming, and animation patterns, see `references/tailwind-v4.md`.
+### Component Anatomy
 
-## Component Anatomy
-
-shadcn-svelte components follow a consistent structure. Replicate this when extending or creating new components:
+All shadcn-svelte components follow this structure:
 
 ```svelte
 <script lang="ts" module>
-  import { tv, type VariantProps } from "tailwind-variants";
-  // Module-level: variants + exported types
-  export const myVariants = tv({
-    base: "...",
-    variants: { size: { sm: "...", md: "..." } },
-    defaultVariants: { size: "md" },
-  });
+  import { tv } from "tailwind-variants";
+  export const myVariants = tv({ base: "...", variants: { ... } });
 </script>
 
 <script lang="ts">
   import { cn } from "$lib/utils.js";
-  // Instance-level: props via $props()
   let {
-    class: className,
-    size = "md",
-    ref = $bindable(null),
-    children,
-    ...restProps
+    class: className, variant, ref = $bindable(null),
+    children, ...restProps
   }: Props = $props();
 </script>
 
-<div
-  bind:this={ref}
-  data-slot="my-component"
-  class={cn(myVariants({ size }), className)}
-  {...restProps}
->
+<div bind:this={ref} data-slot="my-component"
+  class={cn(myVariants({ variant }), className)} {...restProps}>
   {@render children?.()}
 </div>
 ```
 
-**Key conventions:**
-- `tailwind-variants` (`tv()`) for variants — not `cva`
-- `cn()` for class merging (`clsx` + `tailwind-merge`)
-- `data-slot="..."` attribute for styling hooks
-- `$bindable(null)` for ref forwarding
-- `{...restProps}` spread for extensibility (enables attachments to pass through)
+The `cn()` utility merges classes (`clsx` + `tailwind-merge`). `{...restProps}` spread enables attachments and bits-ui features to pass through.
 
-## bits-ui (Headless Layer)
+### bits-ui (Headless Layer)
 
-shadcn-svelte wraps bits-ui. When customizing deeply, understand the primitive:
-
-```svelte
-<!-- Compound component pattern -->
-<Dialog.Root bind:open>
-  <Dialog.Trigger>Open</Dialog.Trigger>
-  <Dialog.Content>
-    <Dialog.Header>
-      <Dialog.Title>Title</Dialog.Title>
-    </Dialog.Header>
-  </Dialog.Content>
-</Dialog.Root>
-```
-
-**Child snippet for render delegation** — override the rendered element:
+Compound component pattern with dot notation. The `child` snippet overrides rendered elements:
 
 ```svelte
 <Dialog.Trigger>
@@ -188,13 +95,56 @@ shadcn-svelte wraps bits-ui. When customizing deeply, understand the primitive:
 </Dialog.Trigger>
 ```
 
-For floating components (Popover, Tooltip, Select), the child snippet receives `wrapperProps` too — always spread both.
+For floating components (Popover, Tooltip, Select), the child snippet also receives `wrapperProps` — spread both.
 
-## Ecosystem Integrations
+See `references/shadcn-components.md` for Dialog, Sheet, Command, Select, Accordion, Toast, DataTable patterns.
+
+## Architecture
+
+Svelte's value proposition is simplicity. State, logic, and markup live together in `.svelte` files — that colocation is the feature. Don't add abstraction layers Svelte was designed to not need.
+
+### Component Extraction
+
+When a component grows large, **extract visual sub-components with narrow props**. This is the Svelte way — not extracting state into separate files.
+
+```svelte
+<!-- Before: 800-line +page.svelte -->
+<!-- After: thin page + focused sub-components -->
+<PageToolbar {services} onDeploy={handleDeploy} onRestart={handleRestart} />
+<ServiceGrid {filteredServices} {statusMap} />
+{#if services.length === 0}
+  <EmptyState {slug} {env} />
+{/if}
+<ConfirmDialogs bind:deleteOpen bind:deployOpen {onConfirm} />
+```
+
+Each sub-component receives only what it needs — not a god object. The state stays in the page component that owns it.
+
+### When to Use .svelte.ts Files
+
+`.svelte.ts` files enable runes outside components. Use them for **reusable reactive logic shared across multiple components** — not for extracting page-local state.
+
+Good uses: `createPagination()`, `createInfiniteScroll()`, `useAutoRefresh()`, `createFormState()`
+Not ideal: extracting a single page's state into a factory just to make the component shorter.
+
+When passing reactive values to `.svelte.ts` functions, use getter functions for primitives (`() => count`) since reactivity persists through property access. Object `$state` proxies can be passed directly.
+
+### Context API
+
+`createContext` (Svelte 5.40+) for SSR-safe, subtree-scoped state:
+
+```ts
+import { createContext } from 'svelte';
+export const [getUser, setUser] = createContext<User>();
+```
+
+Never use module-level `$state` for user-specific data in SSR apps — it leaks between requests.
+
+See `references/component-architecture.md` for the full decision guide on state patterns, file types, and project structure.
+
+## Ecosystem
 
 ### Forms: Formsnap + Superforms
-
-For validated forms, use the shadcn-svelte Form component with superforms:
 
 ```svelte
 <form method="POST" use:enhance>
@@ -210,62 +160,21 @@ For validated forms, use the shadcn-svelte Form component with superforms:
 </form>
 ```
 
-Use `zod4` / `zod4Client` adapters (current versions). See `references/forms-and-tables.md` for full setup.
-
-### Data Tables: TanStack Table
-
-Use `createSvelteTable` from shadcn-svelte's data-table utilities with `renderComponent` and `renderSnippet` helpers. See `references/forms-and-tables.md`.
-
 ### Dark Mode: mode-watcher
 
 ```svelte
-<!-- +layout.svelte -->
-<script>
-  import { ModeWatcher } from "mode-watcher";
-</script>
-<ModeWatcher />
-{@render children?.()}
+<ModeWatcher />  <!-- in +layout.svelte -->
 ```
 
-Toggle with `toggleMode()`, `setMode('light' | 'dark')`, `resetMode()` from `mode-watcher`.
+Toggle: `toggleMode()`, `setMode('light' | 'dark')`, `resetMode()`.
 
-### Icons: @lucide/svelte
+### Data Tables: TanStack Table
 
-Deep imports only: `import Check from "@lucide/svelte/icons/check"` — never barrel imports.
-
-## Key Dependencies
-
-| Package | Purpose |
-|---|---|
-| `bits-ui` | Headless accessible primitives |
-| `tailwind-variants` | Variant API (replaces cva) |
-| `tailwind-merge` + `clsx` | Class merging via `cn()` |
-| `tw-animate-css` | Animation utilities (replaces tailwindcss-animate) |
-| `mode-watcher` | Dark mode |
-| `@lucide/svelte` | Icons |
-| `formsnap` + `sveltekit-superforms` | Form validation |
-| `svelte-sonner` | Toasts |
-| `runed` | Utility runes |
-
-## Critical Rules
-
-1. **Never use Svelte 4 syntax** — no `<slot>`, `export let`, `on:click`, `$$restProps`, `createEventDispatcher`
-2. **No `tailwind.config.ts`** — all Tailwind config in CSS `@theme inline`
-3. **Colors in OKLCH** — never hex or HSL in theme variables
-4. **`tw-animate-css`** — never `tailwindcss-animate`
-5. **`tailwind-variants` (`tv()`)** — never `cva` (class-variance-authority)
-6. **`@lucide/svelte` deep imports** — never `lucide-svelte`
-7. **Spread `{...restProps}` on reusable components** — required for bits-ui and attachments on public/shared components; relaxable for private route-colocated components that won't be composed externally
-8. **Extract logic at ~200 lines** — use colocated `.svelte.ts` factory functions with getter args for reactive props
-9. **Never destructure reactive objects** — access through the returned object
-10. **Use `createContext` for SSR-safe shared state** — never module-level `$state` for user-specific data
-11. **Static data in plain `.ts` files** — constants, type definitions, and configuration that don't use runes belong in `.ts` files, not `.svelte.ts`
-12. **Run tests after refactoring** — preserve all `data-testid` attributes when extracting components; run existing tests before and after to verify zero regressions
+Use `createSvelteTable` with `renderComponent`/`renderSnippet`. See `references/forms-and-tables.md`.
 
 ## Additional Resources
 
-### Reference Files
-- **`references/component-architecture.md`** — Full architecture guide: .svelte.ts patterns, factory functions, reactive classes, context API, feature folders, decision matrix
-- **`references/tailwind-v4.md`** — Complete Tailwind v4 setup: Vite plugin, CSS config, OKLCH theming, dark mode, custom variants, animation
-- **`references/shadcn-components.md`** — Component catalog: Dialog, Sheet, Command, Select, Accordion, Toast patterns with code
-- **`references/forms-and-tables.md`** — Formsnap + Superforms setup, TanStack Table integration, complete working examples
+- **`references/component-architecture.md`** — State patterns, .svelte.ts usage, project structure, context API
+- **`references/tailwind-v4.md`** — Full CSS theme setup, OKLCH colors, dark mode, custom variants
+- **`references/shadcn-components.md`** — Component catalog with code: Dialog, Sheet, Command, Select, Accordion, Toast, DataTable, DropdownMenu
+- **`references/forms-and-tables.md`** — Formsnap + Superforms + TanStack Table complete setup
