@@ -1,6 +1,10 @@
 // dashboard-state.svelte.ts
 // Demonstrates the factory function pattern for extracting logic from UI.
 // Colocated next to the +page.svelte that uses it.
+//
+// Usage in +page.svelte:
+//   let { data } = $props();
+//   const dashboard = createDashboardState(() => data);
 
 interface DashboardItem {
 	id: string;
@@ -15,8 +19,9 @@ interface DashboardData {
 	summary: { total: number; average: number };
 }
 
-export function createDashboardState(initialData: DashboardData) {
-	let data = $state(initialData);
+// Accept a getter function for reactive props — ensures the factory
+// tracks changes when the parent's data prop updates.
+export function createDashboardState(getData: () => DashboardData) {
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 
@@ -30,7 +35,7 @@ export function createDashboardState(initialData: DashboardData) {
 
 	// Derived: filtered + sorted items
 	let filteredItems = $derived.by(() => {
-		let items = data.items;
+		let items = getData().items;
 
 		if (searchQuery) {
 			const q = searchQuery.toLowerCase();
@@ -48,7 +53,7 @@ export function createDashboardState(initialData: DashboardData) {
 	});
 
 	// Derived: unique categories for filter dropdown
-	let categories = $derived([...new Set(data.items.map((i) => i.category))].sort());
+	let categories = $derived([...new Set(getData().items.map((i: DashboardItem) => i.category))].sort());
 
 	// Derived: summary of filtered data
 	let filteredSummary = $derived({
@@ -57,19 +62,9 @@ export function createDashboardState(initialData: DashboardData) {
 		average: filteredItems.length ? filteredItems.reduce((sum, i) => sum + i.value, 0) / filteredItems.length : 0
 	});
 
-	async function refresh() {
-		loading = true;
-		error = null;
-		try {
-			const res = await fetch('/api/dashboard');
-			if (!res.ok) throw new Error(`Failed: ${res.status}`);
-			data = await res.json();
-		} catch (e: unknown) {
-			error = e instanceof Error ? e.message : 'Unknown error';
-		} finally {
-			loading = false;
-		}
-	}
+	// When data comes from a getter (page load data), refresh by invalidating
+	// the SvelteKit load function rather than fetching directly.
+	// For standalone fetch patterns, use internal $state instead of a getter.
 
 	function toggleSort(field: typeof sortField) {
 		if (sortField === field) {
@@ -102,7 +97,6 @@ export function createDashboardState(initialData: DashboardData) {
 		set selectedCategory(v) { selectedCategory = v; },
 
 		// Actions
-		refresh,
 		toggleSort,
 		clearFilters,
 	};

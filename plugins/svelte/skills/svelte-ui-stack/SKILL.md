@@ -36,22 +36,20 @@ routes/dashboard/
 └── DashboardFilters.svelte
 ```
 
-The factory function pattern is the standard way to externalize logic:
+The factory function pattern is the standard way to externalize logic. Pass reactive props as **getter functions** so the factory tracks changes (this pattern is endorsed by Rich Harris):
 
 ```ts
 // dashboard-state.svelte.ts
-export function createDashboardState(initialData: DashboardData) {
-  let data = $state(initialData);
+export function createDashboardState(getData: () => DashboardData) {
   let sortField = $state<'date' | 'amount'>('date');
   let sorted = $derived(
-    data.items.toSorted((a, b) => a[sortField] > b[sortField] ? 1 : -1)
+    getData().items.toSorted((a, b) => a[sortField] > b[sortField] ? 1 : -1)
   );
 
   return {
     get sorted() { return sorted; },
     get sortField() { return sortField; },
     set sortField(v) { sortField = v; },
-    async refresh() { /* ... */ },
   };
 }
 ```
@@ -61,9 +59,13 @@ export function createDashboardState(initialData: DashboardData) {
 <script lang="ts">
   import { createDashboardState } from './dashboard-state.svelte';
   let { data } = $props();
-  const dashboard = createDashboardState(data);
+  const dashboard = createDashboardState(() => data);
 </script>
 ```
+
+**Why getter functions?** Reactivity persists through property access (getters and object properties), not through direct value passing. Passing `data` directly would capture the initial value; `() => data` ensures the factory always reads the current value.
+
+**For object props**, passing the `$state` proxy directly works because property access is tracked. The getter pattern is needed specifically for primitives or when the prop reference itself changes.
 
 **Never destructure reactive return values** — `const { count } = createCounter()` breaks reactivity. Always access through the object: `counter.count`.
 
@@ -253,10 +255,12 @@ Deep imports only: `import Check from "@lucide/svelte/icons/check"` — never ba
 4. **`tw-animate-css`** — never `tailwindcss-animate`
 5. **`tailwind-variants` (`tv()`)** — never `cva` (class-variance-authority)
 6. **`@lucide/svelte` deep imports** — never `lucide-svelte`
-7. **Always spread `{...restProps}`** on the outermost element — required for bits-ui and attachments
-8. **Extract logic at ~200 lines** — use colocated `.svelte.ts` factory functions
+7. **Spread `{...restProps}` on reusable components** — required for bits-ui and attachments on public/shared components; relaxable for private route-colocated components that won't be composed externally
+8. **Extract logic at ~200 lines** — use colocated `.svelte.ts` factory functions with getter args for reactive props
 9. **Never destructure reactive objects** — access through the returned object
 10. **Use `createContext` for SSR-safe shared state** — never module-level `$state` for user-specific data
+11. **Static data in plain `.ts` files** — constants, type definitions, and configuration that don't use runes belong in `.ts` files, not `.svelte.ts`
+12. **Run tests after refactoring** — preserve all `data-testid` attributes when extracting components; run existing tests before and after to verify zero regressions
 
 ## Additional Resources
 
