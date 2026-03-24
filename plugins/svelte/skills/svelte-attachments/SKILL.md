@@ -5,178 +5,102 @@ description: This skill should be used when the user asks to "add an attachment"
 
 # Svelte 5 Attachments
 
-Attachments (`{@attach}`) are the modern way to add reusable DOM behavior in Svelte 5.29+. They replace `use:action` with a simpler, fully reactive API.
+Attachments (`{@attach}`) replace `use:action` in Svelte 5.29+. For new code, always use attachments.
 
-## Core Concept
-
-An attachment is a function that receives a DOM element when mounted and optionally returns a cleanup function:
+## Syntax
 
 ```svelte
-<script lang="ts">
-  import type { Attachment } from 'svelte/attachments';
-
-  const highlight: Attachment = (element) => {
-    element.style.backgroundColor = 'yellow';
-    return () => {
-      element.style.backgroundColor = '';
-    };
-  };
-</script>
-
-<div {@attach highlight}>Highlighted</div>
+<div {@attach myAttachment}>...</div>
 ```
 
-Attachments run inside an effect — they automatically re-execute when reactive dependencies change.
+An attachment is a function `(element) => cleanup`. It runs inside an effect — re-executes when reactive dependencies change.
 
-## Attachment Factories (Parameterized)
-
-Return an attachment function to accept parameters:
+## Parameterized (Factory Pattern)
 
 ```svelte
-<script lang="ts">
-  import type { Attachment } from 'svelte/attachments';
-
+<script>
   function tooltip(content: string): Attachment {
     return (element) => {
       const tip = tippy(element, { content });
       return tip.destroy;
     };
   }
-
   let label = $state('Hello!');
 </script>
 
 <button {@attach tooltip(label)}>Hover me</button>
 ```
 
-When `label` changes, the attachment is destroyed and recreated. To avoid expensive re-setup, use the getter pattern — see `references/patterns.md`.
+When `label` changes, the attachment is destroyed and recreated entirely. To avoid expensive re-setup, pass a getter and use a nested `$effect`:
 
-## Inline Attachments
-
-Define attachments directly in markup:
-
-```svelte
-<canvas
-  {@attach (canvas) => {
-    const ctx = canvas.getContext('2d');
-    $effect(() => {
-      ctx.fillStyle = color;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    });
-  }}
-/>
+```ts
+function chart(getData: () => Data): Attachment {
+  return (node) => {
+    const instance = new ChartLib(node);  // expensive, runs once
+    $effect(() => instance.update(getData()));  // cheap, re-runs
+    return () => instance.destroy();
+  };
+}
 ```
 
-Nested `$effect` inside an inline attachment enables fine-grained reactivity — the outer function runs once, the inner effect re-runs on changes.
+Usage: `{@attach chart(() => data)}`
 
-## Conditional & Multiple Attachments
+## Inline, Conditional, Multiple
 
 ```svelte
-<!-- Conditional: falsy values are ignored -->
+<!-- Inline -->
+<canvas {@attach (el) => { const ctx = el.getContext('2d'); /* ... */ }} />
+
+<!-- Conditional (falsy = ignored) -->
 <div {@attach enabled && clickOutside(() => open = false)}>...</div>
 
-<!-- Multiple attachments on one element -->
-<div
-  {@attach tooltip('Info')}
-  {@attach clickOutside(() => open = false)}
->...</div>
+<!-- Multiple on one element -->
+<div {@attach tooltip('Info')} {@attach clickOutside(() => open = false)}>...</div>
 ```
 
-## Attachments on Components
+## On Components
 
-Attachments pass through to elements when a component spreads props:
-
-```svelte
-<!-- Button.svelte -->
-<script lang="ts">
-  import type { HTMLButtonAttributes } from 'svelte/elements';
-  let { children, ...props }: HTMLButtonAttributes = $props();
-</script>
-
-<button {...props}>
-  {@render children?.()}
-</button>
-```
+Attachments pass through when a component spreads props (`{...restProps}` on the target element):
 
 ```svelte
-<!-- Usage: attachment passes through to the <button> -->
 <Button {@attach tooltip('Click me')}>Submit</Button>
 ```
 
 ## Migrating from Actions
 
-### fromAction() utility
-
-Convert existing `use:action` to attachments incrementally:
-
 ```svelte
-<script>
-  import { fromAction } from 'svelte/attachments';
-  import { myAction } from '$lib/actions';
-</script>
-
 <!-- Before -->
 <div use:myAction={param}>...</div>
 
 <!-- After -->
 <div {@attach fromAction(myAction, () => param)}>...</div>
-
-<!-- No-param action -->
-<div {@attach fromAction(myAction)}>...</div>
 ```
 
-The second argument must be a **function returning** the parameter, not the parameter itself.
+Import: `import { fromAction } from 'svelte/attachments'`. The second arg must be a **function returning** the parameter.
 
 ## Attachments vs Actions
 
 | Feature | `use:action` | `{@attach}` |
 |---|---|---|
-| Reactivity | Manual `update()` | Automatic re-execution |
-| Inline | Not supported | `{@attach (el) => {...}}` |
-| Conditional | Workarounds needed | `{@attach cond && fn}` |
-| Components | DOM elements only | Components + elements |
-| Spreading | Not supported | `{...props}` compatible |
-| Cleanup | `{ destroy() {} }` object | Return a function |
-| Multiple | One per action name | Unlimited `{@attach}` |
+| Reactivity | Manual `update()` | Automatic |
+| Inline | No | `{@attach (el) => {...}}` |
+| Conditional | Workarounds | `{@attach cond && fn}` |
+| Components | DOM only | Components + elements |
+| Cleanup | `{ destroy() {} }` | Return a function |
+| Multiple | One per action | Unlimited |
 
-**For new code, always prefer attachments.** Use `fromAction()` only for migrating existing action libraries.
+## createAttachmentKey() (Library Authors)
 
-## createAttachmentKey() for Libraries
-
-Create symbol keys recognized as attachments when spread onto elements:
+Create symbol keys recognized as attachments when spread:
 
 ```ts
 import { createAttachmentKey } from 'svelte/attachments';
-
 const key = createAttachmentKey();
-
-const props = {
-  class: 'btn',
-  [key]: (node: Element) => {
-    // runs when element mounts
-    return () => { /* cleanup */ };
-  }
-};
+const props = { class: 'btn', [key]: (node) => { /* ... */ } };
 ```
-
-```svelte
-<button {...props}>Click</button>
-```
-
-## Critical Rules
-
-1. **Use attachments for all new DOM behavior** — `use:action` is legacy
-2. **Always return cleanup** for listeners, intervals, third-party libraries
-3. **Use getter pattern for expensive setup** — `{@attach foo(() => bar)}` separates setup from reactive updates
-4. **`fromAction` second arg is a function** — `() => param`, not `param`
-5. **Attachments re-run entirely on dependency changes** — use nested `$effect` for fine-grained control
-6. **Component attachments require prop spreading** — `{...props}` on the target element
 
 ## Additional Resources
 
-### Reference Files
-- **`references/patterns.md`** — Common attachment patterns (click outside, intersection observer, focus trap, drag, resize)
-
-### Example Files
-- **`examples/tooltip.svelte`** — Tooltip attachment with tippy.js
+- **`references/patterns.md`** — Click outside, intersection observer, focus trap, drag, resize, long press, auto-resize textarea
+- **`examples/tooltip.svelte`** — Tooltip with tippy.js
 - **`examples/click-outside.svelte`** — Click outside handler

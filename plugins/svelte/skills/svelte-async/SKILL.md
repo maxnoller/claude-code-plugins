@@ -5,9 +5,7 @@ description: This skill should be used when the user asks to "use await in a com
 
 # Svelte 5 Async Patterns
 
-Svelte 5.36+ introduces `await` expressions directly in components — reactive async state, coordinated updates, and suspense-like boundaries.
-
-**Status:** Experimental (will stabilize in Svelte 6)
+Svelte 5.36+ adds `await` expressions directly in components. Experimental — will stabilize in Svelte 6.
 
 ## Setup
 
@@ -20,44 +18,38 @@ export default {
 };
 ```
 
-**Caveat:** When enabled, block effects (`{#if}`, `{#each}`) run before `$effect.pre` in the same component.
+Caveat: when enabled, block effects (`{#if}`, `{#each}`) run before `$effect.pre` in the same component.
 
-## Three Places Where await Works
+## Where await Works
 
-### 1. Top-level script
+### Top-level script
 
 ```svelte
 <script>
   const user = await fetch('/api/user').then(r => r.json());
 </script>
-
-<h1>{user.name}</h1>
 ```
 
-### 2. Inside $derived (reactive async)
+### Inside $derived (reactive async)
 
 ```svelte
 <script>
   let city = $state('New York');
   const weather = $derived(await getWeather(city));
 </script>
-
-<p>{weather.temp}°</p>
 ```
 
-When `city` changes, `weather` automatically refetches. The UI stays consistent — old values display until the new result arrives.
+Refetches automatically when `city` changes. Old values display until the new result arrives.
 
-### 3. In markup expressions
+### In markup
 
 ```svelte
 <p>{a} + {b} = {await add(a, b)}</p>
 ```
 
-**Restriction:** `await` is NOT allowed in `use:`, `transition:`, `animate:`, attachments, or bindings.
+`await` is NOT allowed in `use:`, `transition:`, `animate:`, attachments, or bindings.
 
-## svelte:boundary with pending
-
-Wrap async content in a boundary to show loading state:
+## svelte:boundary
 
 ```svelte
 <svelte:boundary>
@@ -74,68 +66,31 @@ Wrap async content in a boundary to show loading state:
 </svelte:boundary>
 ```
 
-**Key behaviors:**
-- `pending` renders only during **initial** load — subsequent updates keep showing the old value
-- Use `$effect.pending()` for update indicators after initial load
-- Error boundaries catch rendering errors and effect errors, NOT event handler or setTimeout errors
+`pending` renders only during **initial** load. For update indicators, use `$effect.pending()` which returns the count of pending promises in the current boundary.
 
-## $effect.pending()
+Error boundaries catch rendering and effect errors, not event handler or setTimeout errors.
 
-Returns the count of pending promises in the current boundary:
+## Consistency Guarantee
 
-```svelte
-<p>{a} + {b} = {await add(a, b)}</p>
+Async expressions block dependent UI updates until resolved — values always display consistently. Exception: focused `<input>` elements update immediately.
 
-{#if $effect.pending()}
-  <span class="spinner">Updating...</span>
-{/if}
-```
+## Parallel Execution & Waterfall Avoidance
 
-Only callable inside an effect or derived — errors outside reactive context.
+Independent await expressions in markup run in parallel automatically.
 
-## Synchronized Updates (Consistency Guarantee)
+Sequential `$derived` chains create waterfalls. Fix by separating promise creation from awaiting:
 
-Async expressions block dependent UI updates until resolved:
-
-```svelte
-<script>
-  let a = $state(1);
-  let b = $state(2);
-</script>
-
-<p>{a} + {b} = {await add(a, b)}</p>
-```
-
-The values `a`, `b`, and the result always display consistently — never "2 + 2 = 2". Exception: focused `<input>` elements update immediately.
-
-## Parallel Execution
-
-Independent await expressions in markup run simultaneously:
-
-```svelte
-<!-- These fetch in parallel, not sequentially -->
-<li>Apples: {await getPrice('apple')}</li>
-<li>Bananas: {await getPrice('banana')}</li>
-```
-
-### Avoiding Waterfall in $derived
-
-**Problem — sequential:**
 ```ts
+// Waterfall:
 let a = $derived(await one(x));  // blocks
 let b = $derived(await two(y));  // waits for a
+
+// Parallel:
+let aP = $derived(one(x));
+let bP = $derived(two(y));
+let a = $derived(await aP);
+let b = $derived(await bP);
 ```
-
-**Solution — create promises first, then await:**
-```ts
-let aPromise = $derived(one(x));
-let bPromise = $derived(two(y));
-
-let a = $derived(await aPromise);  // parallel
-let b = $derived(await bPromise);  // parallel
-```
-
-The compiler warns with `await_waterfall` when a derived is not read immediately after resolving.
 
 ## getAbortSignal()
 
@@ -144,7 +99,6 @@ Auto-abort when a derived/effect re-runs or is destroyed:
 ```svelte
 <script>
   import { getAbortSignal } from 'svelte';
-
   let id = $state(1);
   const data = $derived(await fetch(`/items/${id}`, {
     signal: getAbortSignal()
@@ -152,16 +106,13 @@ Auto-abort when a derived/effect re-runs or is destroyed:
 </script>
 ```
 
-Must be called inside an effect or derived.
+## fork() — Speculative State (5.42+)
 
-## fork() — Speculative State (Svelte 5.42+)
-
-Create state changes evaluated but not applied to DOM. Primary use: preloading data on hover:
+Evaluate state changes without applying to DOM. Primary use: preloading on hover.
 
 ```svelte
 <script>
   import { fork } from 'svelte';
-
   let open = $state(false);
   let pending: ReturnType<typeof fork> | null = null;
 
@@ -174,65 +125,38 @@ Create state changes evaluated but not applied to DOM. Primary use: preloading d
   onpointerenter={preload}
   onpointerleave={() => { pending?.discard(); pending = null; }}
   onclick={() => { pending?.commit(); pending = null; open = true; }}
->
-  Open menu
-</button>
-
-{#if open}
-  <Menu onclose={() => open = false} />
-{/if}
+>Open menu</button>
 ```
 
-**API:** `fork(fn)` returns `{ commit(): Promise<void>, discard(): void }`. Cannot create inside an effect or when state changes are pending.
+Returns `{ commit(): Promise<void>, discard(): void }`. Cannot create inside effects or when state changes are pending.
 
-## settled() and tick()
+## settled() vs tick()
 
 ```ts
 import { tick, settled } from 'svelte';
-
-async function handleClick() {
-  color = 'blue';
-  await tick();      // DOM updated, but async deriveds may still be pending
-  await settled();   // DOM updated AND all async work resolved
-}
+await tick();      // DOM updated, async deriveds may still be pending
+await settled();   // DOM updated AND all async work resolved
 ```
 
-## {#await} Block vs Inline await
+## {#await} vs Inline await
 
-| Feature | `{#await}` block | Inline `await` |
+| | `{#await}` block | Inline `await` |
 |---|---|---|
-| Requires experimental flag | No | Yes |
-| Reactive (re-runs on state change) | Manual | Automatic with `$derived` |
-| Loading state | Per-promise `{:then}` / `{:catch}` | `<svelte:boundary>` + `pending` |
-| Parallel execution | Manual | Automatic in markup |
-| Consistency guarantee | No | Yes (synchronized updates) |
-| SSR | Renders pending branch | Resolves before render (or pending boundary) |
+| Experimental flag | No | Yes |
+| Reactive | Manual | Automatic via `$derived` |
+| Loading state | Per-promise `{:then}/{:catch}` | `<svelte:boundary>` |
+| Parallel | Manual | Automatic in markup |
+| Consistency | No | Yes |
 
-**Use `{#await}` for:** One-off promises, lazy-loaded components, explicit per-promise loading states.
-**Use inline `await` for:** Reactive data, coordinated UI updates, component-level data loading.
+Use `{#await}` for one-off promises and lazy imports. Use inline `await` for reactive data and coordinated updates.
 
-## SSR Behavior
+## SSR
 
-- `await render(App)` resolves all async work outside `pending` boundaries before returning
-- Content inside `<svelte:boundary>` with `pending` snippet renders the pending state during SSR
-- Error boundaries work on server since Svelte 5.53.0
-- Streaming SSR planned but not yet implemented
-
-## Critical Rules
-
-1. **Always wrap async components in `<svelte:boundary>`** with a `pending` snippet
-2. **Use `getAbortSignal()`** for fetch calls in `$derived` to prevent stale responses
-3. **Avoid waterfall** — split promise creation from awaiting in sequential `$derived` chains
-4. **`$effect.pending()` only in reactive context** — errors if called outside effect/derived
-5. **`fork()` cannot nest** — cannot create inside effects or when state changes are pending
-6. **`await` not allowed in directives** — no `use:`, `transition:`, `animate:`, attachments, or bindings
+`await render(App)` resolves async work outside `pending` boundaries before returning. Content in `<svelte:boundary>` with `pending` renders the pending state during SSR. Streaming SSR planned but not yet implemented.
 
 ## Additional Resources
 
-### Reference Files
-- **`references/error-reference.md`** — Compiler and runtime error/warning reference for async patterns
-- **`references/remote-functions-integration.md`** — Using async await with remote functions
-
-### Example Files
+- **`references/error-reference.md`** — Compiler/runtime errors and warnings for async
+- **`references/remote-functions-integration.md`** — Using await with remote functions
 - **`examples/async-search.svelte`** — Reactive search with abort and pending indicator
-- **`examples/data-preload.svelte`** — fork() pattern for hover preloading
+- **`examples/data-preload.svelte`** — fork() hover preloading
