@@ -94,6 +94,46 @@ $effect(() => {
 let doubled = $derived(count * 2);
 ```
 
+### Don't use $effect for data fetching
+
+The `$effect` + `.then()` + cancelled flag pattern is a common antipattern. Replace with async `$derived` + `getAbortSignal()` + `<svelte:boundary>` (requires `experimental.async`):
+
+```svelte
+<!-- WRONG: Manual fetch with cancellation boilerplate -->
+<script>
+  let query = $state('');
+  let results = $state([]);
+  let loading = $state(false);
+
+  $effect(() => {
+    let cancelled = false;
+    loading = true;
+    fetch(`/api/search?q=${query}`)
+      .then(r => r.json())
+      .then(data => { if (!cancelled) results = data; })
+      .finally(() => { if (!cancelled) loading = false; });
+    return () => { cancelled = true; };
+  });
+</script>
+
+<!-- CORRECT: Async $derived handles cancellation and loading automatically -->
+<script>
+  import { getAbortSignal } from 'svelte';
+  let query = $state('');
+  let results = $derived(await fetch(`/api/search?q=${query}`, {
+    signal: getAbortSignal()
+  }).then(r => r.json()));
+</script>
+
+<svelte:boundary>
+  {#each results as item (item.id)}
+    <div>{item.name}</div>
+  {/each}
+  {#snippet pending()}<p>Loading...</p>{/snippet}
+  {#snippet failed(error, reset)}<p>{error.message}</p><button onclick={reset}>Retry</button>{/snippet}
+</svelte:boundary>
+```
+
 ## $props Gotchas
 
 ### Props are not reactive by default in functions
