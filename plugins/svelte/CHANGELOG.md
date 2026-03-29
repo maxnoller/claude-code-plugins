@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0](https://github.com/maxnoller/claude-code-plugins/compare/svelte-v0.2.1...svelte-v0.3.0) (2026-03-29)
+
+### Features
+
+* unify 7 skills into single svelte-5 skill with progressive disclosure
+* add attachments ({@attach}), async Svelte, $state.raw/snapshot, createContext
+* add svelte/reactivity built-ins, $app/state, getRequestEvent, shallow routing
+* update remote functions with rich form field API, invalid(), prerender()
+* comprehensive deprecated patterns table and migration guide
+
 ## [0.2.1](https://github.com/maxnoller/claude-code-plugins/compare/svelte-v0.2.0...svelte-v0.2.1) (2026-01-17)
 
 

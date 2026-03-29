@@ -1,17 +1,12 @@
 # Svelte Plugin for Claude Code
 
-Modern Svelte 5 and SvelteKit development assistant with deep knowledge of runes, remote functions, testing patterns, and performance optimization.
+Modern Svelte 5 and SvelteKit development assistant with deep knowledge of runes, attachments, async patterns, remote functions, testing, performance optimization, and accessibility.
 
 ## Features
 
 ### Skills (Auto-activate based on context)
-- **svelte-5** - Unified Svelte 5 + SvelteKit skill covering runes, component patterns, server-side (load functions, form actions, hooks, API routes), remote functions, testing with vitest-browser-svelte, performance optimization, and accessibility
-
-### Commands
-- `/svelte:new [name]` - Scaffold a new SvelteKit + Svelte 5 + shadcn-svelte project
-
-### Agents
-- **svelte-reviewer** - Proactively reviews `.svelte` files after edits for antipatterns
+- **svelte-5** — Unified Svelte 5 + SvelteKit skill covering runes, attachments, async Svelte, component patterns, server-side (load functions, form actions, hooks, API routes), remote functions, testing with vitest-browser-svelte, performance optimization, and accessibility
+- **svelte-ui-stack** — Build production UIs with shadcn-svelte, bits-ui, and Tailwind CSS v4
 
 ## Recommended: Official Svelte MCP
 

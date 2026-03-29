@@ -1,6 +1,6 @@
 {
   "name": "svelte",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Svelte 5 and SvelteKit development with up-to-date patterns for runes, remote functions, async await expressions, attachments, shadcn-svelte, Tailwind CSS v4, and bits-ui.",
   "author": {
     "name": "max"
