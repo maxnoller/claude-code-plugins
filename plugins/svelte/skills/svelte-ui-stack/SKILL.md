@@ -1,5 +1,5 @@
 ---
-name: Svelte UI Stack
+name: svelte-ui-stack
 description: This skill should be used when the user asks to "build a page", "add a component", "create a form", "add a dialog", "set up shadcn-svelte", "add dark mode", "style with tailwind", "create a dashboard", "add a data table", or works with any UI in Svelte 5. Also trigger when the user mentions shadcn-svelte, bits-ui, Tailwind CSS, formsnap, superforms, tailwind-variants, mode-watcher, or component architecture. Even if the user doesn't explicitly mention UI libraries, use this skill whenever building visual interfaces in SvelteKit — it prevents common mistakes like using Svelte 4 syntax, wrong Tailwind v4 patterns, and poor component architecture.
 ---
 

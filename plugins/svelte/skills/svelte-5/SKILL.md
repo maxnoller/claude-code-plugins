@@ -1,5 +1,5 @@
 ---
-name: Svelte 5
+name: svelte-5
 description: Comprehensive Svelte 5 and SvelteKit development patterns — runes ($state, $state.raw, $state.snapshot, $derived, $effect, $props, $bindable, $inspect, $host), attachments ({@attach}), async Svelte (await expressions, svelte:boundary, $effect.pending, getAbortSignal), component architecture (snippets, compound components with createContext, headless UI), svelte/reactivity (MediaQuery, SvelteMap, SvelteSet, SvelteURL), SvelteKit server (load functions, form actions, hooks, API routes, $app/state), remote functions (query, command, form, batch, prerender), testing with vitest-browser-svelte, performance optimization, and accessibility. Use this skill whenever writing, reviewing, or modifying Svelte or SvelteKit code, working with .svelte/.svelte.ts files, asking about Svelte 5 reactivity or migration from Svelte 4, building components, setting up tests, optimizing performance, implementing accessibility, using attachments or actions, async rendering, or any SvelteKit server-side pattern. Even if the user doesn't say "Svelte" explicitly, use this skill if the context involves .svelte files, runes, SvelteKit routes, or any of the patterns above.
 ---
 
