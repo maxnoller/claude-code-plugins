@@ -16,12 +16,109 @@ const config = {
 export default config;
 ```
 
+## prerender() — Build-Time Data
+
+Generate data at build time for static pages:
+
+```ts
+// src/lib/blog.remote.ts
+import { prerender } from '$app/server';
+
+export const getBlogPosts = prerender(async () => {
+  return await db.posts.findMany({ where: { published: true } });
+});
+```
+
+## Form Handling with invalid()
+
+The `invalid()` function from `@sveltejs/kit` is the recommended way to return validation errors:
+
+```ts
+import { form } from '$app/server';
+import { invalid } from '@sveltejs/kit';
+
+export const submitContact = form(async ({ request }) => {
+  const data = await request.formData();
+  const email = data.get('email') as string;
+
+  if (!email) return invalid(400, { email: 'Required' });
+  if (!email.includes('@')) return invalid(400, { email: 'Invalid email' });
+
+  await sendEmail(email);
+  return { success: true };
+});
+```
+
+### Rich Form Field API
+
+The `form()` return value provides a rich API for accessing field values and validation issues:
+
+```svelte
+<script>
+  import { submitContact } from '$lib/contact.remote';
+</script>
+
+<form {...submitContact.spread()}>
+  <input name="email" type="email" />
+  {#if submitContact.fields.email.issues()}
+    <span class="error">{submitContact.fields.email.issues()}</span>
+  {/if}
+
+  <input name="name" />
+  <!-- Access field value as text -->
+  <p>Preview: {submitContact.fields.name.as('text')}</p>
+
+  <button>Submit</button>
+</form>
+```
+
+### .enhance() — Custom Submission
+
+```svelte
+<form
+  {...submitContact.spread()}
+  {...submitContact.enhance({
+    onsubmit: () => { /* before submit */ },
+    onsuccess: () => { /* after success */ },
+    onerror: (error) => { /* on error */ }
+  })}
+>
+  <!-- fields -->
+</form>
+```
+
+### .for() — Multiple Form Instances
+
+When you need multiple instances of the same form on one page:
+
+```svelte
+{#each items as item}
+  {@const editForm = updateItem.for(item.id)}
+  <form {...editForm.spread()}>
+    <input name="title" value={item.title} />
+    <button>Save</button>
+  </form>
+{/each}
+```
+
+### .updates() — Single-Flight Mutations
+
+Prevents duplicate submissions:
+
+```ts
+export const toggleTodo = command(async (id: string) => {
+  // Only one in-flight request per call site
+  const todo = await db.todos.findUnique({ where: { id } });
+  return await db.todos.update({ where: { id }, data: { done: !todo?.done } });
+});
+```
+
 ## Form Handling with Zod Validation
 
 ```ts
 // src/lib/contact.remote.ts
 import { form } from '$app/server';
-import { fail } from '@sveltejs/kit';
+import { invalid } from '@sveltejs/kit';
 import { z } from 'zod';
 
 const ContactSchema = z.object({
@@ -36,10 +133,7 @@ export const submitContact = form(async ({ request }) => {
 
   const result = ContactSchema.safeParse(data);
   if (!result.success) {
-    return fail(400, {
-      errors: result.error.flatten().fieldErrors,
-      data
-    });
+    return invalid(400, result.error.flatten().fieldErrors);
   }
 
   await sendEmail(result.data);
@@ -84,6 +178,18 @@ export const submitContact = form(async ({ request }) => {
     {submitting ? 'Sending...' : 'Send'}
   </button>
 </form>
+```
+
+## Streaming File Uploads (SvelteKit 2.49+)
+
+Forms can stream file uploads:
+
+```ts
+export const uploadFile = form(async ({ request }) => {
+  const data = await request.formData();
+  const file = data.get('file') as File;
+  // Process file...
+});
 ```
 
 ## Batch Pattern

@@ -1,6 +1,6 @@
 ---
 name: Svelte 5
-description: Comprehensive Svelte 5 and SvelteKit development patterns — runes ($state, $derived, $effect, $props, $bindable), component architecture (snippets, compound components, headless UI), SvelteKit server (load functions, form actions, hooks, API routes), remote functions (query, command, form, batch), testing with vitest-browser-svelte, performance optimization, and accessibility. Use this skill whenever writing, reviewing, or modifying Svelte or SvelteKit code, working with .svelte/.svelte.ts files, asking about Svelte 5 reactivity or migration from Svelte 4, building components, setting up tests, optimizing performance, implementing accessibility, or using any SvelteKit server-side pattern. Even if the user doesn't say "Svelte" explicitly, use this skill if the context involves .svelte files, runes, SvelteKit routes, or any of the patterns above.
+description: Comprehensive Svelte 5 and SvelteKit development patterns — runes ($state, $state.raw, $state.snapshot, $derived, $effect, $props, $bindable, $inspect, $host), attachments ({@attach}), async Svelte (await expressions, svelte:boundary, $effect.pending, getAbortSignal), component architecture (snippets, compound components with createContext, headless UI), svelte/reactivity (MediaQuery, SvelteMap, SvelteSet, SvelteURL), SvelteKit server (load functions, form actions, hooks, API routes, $app/state), remote functions (query, command, form, batch, prerender), testing with vitest-browser-svelte, performance optimization, and accessibility. Use this skill whenever writing, reviewing, or modifying Svelte or SvelteKit code, working with .svelte/.svelte.ts files, asking about Svelte 5 reactivity or migration from Svelte 4, building components, setting up tests, optimizing performance, implementing accessibility, using attachments or actions, async rendering, or any SvelteKit server-side pattern. Even if the user doesn't say "Svelte" explicitly, use this skill if the context involves .svelte files, runes, SvelteKit routes, or any of the patterns above.
 ---
 
 # Svelte 5
@@ -30,6 +30,26 @@ class MyClass {
 }
 ```
 
+### $state.raw — Shallow Reactive State
+
+Creates state where only reassignment triggers updates (no deep proxy). Use for large datasets, immutable data, or values from external libraries that don't expect proxies:
+
+```ts
+let items = $state.raw(hugeArray);        // Only reassignment triggers updates
+items = [...items, newItem];              // This triggers
+items.push(newItem);                      // This does NOT trigger
+```
+
+### $state.snapshot — Convert Proxy to Plain Object
+
+Converts a deep reactive proxy back to a plain object. Use for serialization, logging, or passing to external APIs:
+
+```ts
+let user = $state({ name: 'Alice', nested: { age: 30 } });
+let plain = $state.snapshot(user); // Plain object, no proxy
+console.log(JSON.stringify(plain));
+```
+
 ### $derived — Computed Values
 
 ```svelte
@@ -53,7 +73,10 @@ $effect(() => {
 
 Use for DOM manipulation, subscriptions, logging, browser APIs. Never read and write the same state (infinite loop). Prefer `$derived` over `$effect` when computing values.
 
-`$effect.pre()` runs before DOM updates (replaces `beforeUpdate`).
+**Variants:**
+- `$effect.pre()` — runs before DOM updates (replaces `beforeUpdate`)
+- `$effect.tracking()` — returns `true` if inside a tracking context (useful in libraries)
+- `$effect.root()` — creates a manually-managed effect scope; returns a cleanup function
 
 ### $props — Component Props
 
@@ -89,6 +112,15 @@ $inspect(count); // Logs on change, stripped in production
 $inspect(count).with((type, value) => { if (type === 'update') debugger; });
 ```
 
+### $host — Custom Elements
+
+Within components compiled with `customElement: true`, `$host()` returns the host element for dispatching custom events:
+
+```ts
+let host = $host();
+host.dispatchEvent(new CustomEvent('change', { detail: value }));
+```
+
 ### Runes in .svelte.ts Files
 
 Use runes outside components in `.svelte.ts` files. Only rename to `.svelte.ts` when the file directly declares runes — files that merely import rune-using functions stay as `.ts`.
@@ -113,6 +145,128 @@ export function createCounter(initial = 0) {
 5. Always return cleanup from `$effect` for intervals, listeners, subscriptions
 
 > **Deep dive:** Read `references/gotchas.md` for common mistakes. Read `references/migration.md` for Svelte 4 to 5 migration patterns.
+
+---
+
+## Attachments ({@attach}) — Svelte 5.29+
+
+Attachments replace `use:action`. They're functions that receive a DOM element, run inside an effect (inherently reactive), and work on both DOM elements and components:
+
+```svelte
+<script>
+  import { tooltip } from '$lib/attachments';
+</script>
+
+<button {@attach tooltip('Hello!')}>Hover me</button>
+```
+
+Writing an attachment:
+
+```ts
+// tooltip.svelte.ts
+export function tooltip(text: string) {
+  return (node: HTMLElement) => {
+    // Setup — runs in an effect, so reactive to `text` changes
+    const tip = document.createElement('div');
+    tip.textContent = text;
+    // ... positioning logic ...
+
+    return () => {
+      // Cleanup — runs on re-run or destroy
+      tip.remove();
+    };
+  };
+}
+```
+
+**Key differences from `use:action`:**
+- Run inside an effect — automatically re-run when dependencies change
+- Work on components (not just DOM elements)
+- Return cleanup function directly (no `destroy()` method)
+- Use `fromAction()` from `svelte/attachments` to wrap existing actions
+- Use `createAttachmentKey()` for typed attachment props
+
+> **Deep dive:** Read `references/attachments.md` for `fromAction()`, `createAttachmentKey()`, click-outside patterns, and migration from actions.
+
+---
+
+## Async Svelte (Experimental) — Svelte 5.36+
+
+Enable with `compilerOptions.experimental.async: true`. Allows `await` directly in `<script>`, `$derived`, and markup:
+
+```svelte
+<script>
+  let { id } = $props();
+  let user = $derived(await fetchUser(id)); // Re-fetches when id changes
+</script>
+
+<h1>{user.name}</h1>
+```
+
+### svelte:boundary — Error and Loading Boundaries
+
+```svelte
+<svelte:boundary>
+  <MyAsyncComponent />
+
+  {#snippet pending()}
+    <p>Loading...</p>
+  {/snippet}
+
+  {#snippet failed(error, reset)}
+    <p>Error: {error.message}</p>
+    <button onclick={reset}>Retry</button>
+  {/snippet}
+</svelte:boundary>
+```
+
+Works during SSR as of Svelte 5.53+. Use `transformError` in `render()` to sanitize errors for the client.
+
+### Key Async APIs
+
+- **`$effect.pending()`** — returns count of pending async operations in the current boundary
+- **`getAbortSignal()`** (5.35+) — returns an `AbortSignal` that aborts when the current `$derived`/`$effect` re-runs or is destroyed. The correct way to cancel stale fetches:
+
+```ts
+import { getAbortSignal } from 'svelte';
+
+let data = $derived(await fetch(`/api/items?q=${query}`, {
+  signal: getAbortSignal()
+}).then(r => r.json()));
+```
+
+- **`$state.eager()`** (5.41+) — updates UI immediately during async, before the `await` resolves. Use for instant UI feedback (e.g., active link), not for critical state
+- **`fork()`** (5.42+) — runs state changes offscreen to discover async work without committing. Used by SvelteKit for preloading
+- **`settled()`** — returns a promise that resolves when all async work in the tree completes
+
+> **Deep dive:** Read `references/async.md` for full async patterns, SSR considerations, and boundary composition.
+
+---
+
+## Reactive Built-ins (svelte/reactivity)
+
+Reactive wrappers around native APIs. **Do NOT wrap these with `$state()`** — they're already reactive:
+
+```ts
+import { MediaQuery, SvelteMap, SvelteSet, SvelteURL, SvelteDate } from 'svelte/reactivity';
+
+// Responsive design
+const isMobile = new MediaQuery('(max-width: 768px)');
+// In template: {#if isMobile.current}...{/if}
+
+// Reactive collections
+const selected = new SvelteSet<string>();
+const cache = new SvelteMap<string, Data>();
+
+// Reactive URL
+const url = new SvelteURL('https://example.com');
+url.searchParams.set('q', 'svelte'); // Triggers reactivity
+
+// Reactive date
+const now = new SvelteDate();
+```
+
+Common gotcha: `let map = $state(new SvelteMap())` is redundant — just use `let map = new SvelteMap()`.
 
 ---
 
@@ -156,23 +310,29 @@ export function createCounter(initial = 0) {
 
 Always use optional chaining for optional snippets: `{@render icon?.()}`
 
-### Compound Components
+### Compound Components with createContext (5.40+)
 
-Related components share state via context:
+`createContext` is the recommended way to share state between related components. It returns a type-safe `[get, set]` tuple:
 
 ```svelte
 <!-- Accordion.svelte -->
 <script lang="ts" module>
-  import { getContext, setContext } from 'svelte';
-  const KEY = Symbol('accordion');
-  export function getAccordionCtx() { return getContext(KEY); }
+  import { createContext } from 'svelte';
+
+  interface AccordionContext {
+    toggle: (id: string) => void;
+    isOpen: (id: string) => boolean;
+  }
+
+  const [getAccordionCtx, setAccordionCtx] = createContext<AccordionContext>();
+  export { getAccordionCtx };
 </script>
 
 <script lang="ts">
   let { multiple = false, children }: Props = $props();
   let activeItems = $state(new Set<string>());
   // toggle, isOpen functions...
-  setContext(KEY, { get activeItems() { return activeItems }, toggle, isOpen });
+  setAccordionCtx({ toggle, isOpen });
 </script>
 {@render children()}
 ```
@@ -198,11 +358,25 @@ Provide behavior without UI by passing state/actions through snippet parameters:
 </svelte:element>
 ```
 
-> **Deep dive:** Read `references/components.md` for full compound component, controlled/uncontrolled, and forwarding patterns with examples.
+> **Deep dive:** Read `references/components.md` for full compound component, controlled/uncontrolled, and forwarding patterns.
 
 ---
 
 ## SvelteKit Server
+
+### $app/state (Replacing $app/stores)
+
+Use `$app/state` instead of the deprecated `$app/stores`:
+
+```svelte
+<script>
+  import { page, navigating, updated } from '$app/state';
+</script>
+
+<!-- Access directly — no $ prefix needed, these are runes-based -->
+<p>Current path: {page.url.pathname}</p>
+{#if navigating.to}<p>Navigating...</p>{/if}
+```
 
 ### Load Functions
 
@@ -215,6 +389,19 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 ```
 
 Use `+page.server.ts` for DB/secrets, `+layout.server.ts` for shared data, `+page.ts` for client-cacheable/public API calls. Always parallelize independent fetches with `Promise.all`.
+
+### getRequestEvent() — SvelteKit 2.20+
+
+Returns the current `RequestEvent` inside server code, eliminating the need to pass it through call chains:
+
+```ts
+import { getRequestEvent } from '$app/server';
+
+export async function getCurrentUser() {
+  const event = getRequestEvent();
+  return event.locals.user;
+}
+```
 
 ### Form Actions
 
@@ -254,7 +441,19 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 };
 ```
 
-> **Deep dive:** Read `references/server-patterns.md` for complete hooks, streaming, locals typing, and antipattern examples.
+### Shallow Routing
+
+Update URL state without full navigation using `pushState`/`replaceState`:
+
+```ts
+import { pushState } from '$app/navigation';
+
+pushState('/items/1', { selected: item });
+```
+
+Access in components via `page.state`.
+
+> **Deep dive:** Read `references/server-patterns.md` for complete hooks, streaming, locals typing, navigation, and antipattern examples.
 
 ---
 
@@ -274,12 +473,27 @@ export const createTodo = command(async (text: string) => {
 
 - `query()` — read-only server data fetching
 - `command()` — server mutations
-- `form()` — progressive enhancement forms (works with/without JS)
+- `form()` — progressive enhancement forms with rich field API (`.as('text')`, `.fields.title.issues()`)
 - `query.batch()` — batch multiple queries into one HTTP request
+- `prerender()` — generate data at build time
+
+### Form Validation with invalid()
+
+```ts
+import { form } from '$app/server';
+import { invalid } from '@sveltejs/kit';
+
+export const login = form(async ({ request }) => {
+  const data = await request.formData();
+  const email = data.get('email') as string;
+  if (!email) return invalid(400, { email: 'Required' });
+  // ...
+});
+```
 
 Place `.remote.ts` files anywhere in `src/` except `src/lib/server/`. Use remote functions for interaction-triggered data; use load functions for SSR/SEO-critical data.
 
-> **Deep dive:** Read `references/remote-functions.md` for form handling with Zod, batch patterns, and comparison with load functions.
+> **Deep dive:** Read `references/remote-functions.md` for form field API, batch patterns, .enhance(), streaming uploads, and comparison with load functions.
 
 ---
 
@@ -334,10 +548,12 @@ it('increments', () => {
 
 Svelte 5's fine-grained reactivity is fast by default. Key optimizations:
 
+- **`$state.raw` for large data:** Avoid deep proxy overhead on big arrays/immutable data
 - **Keyed each blocks:** `{#each items as item (item.id)}` — enables efficient DOM reuse
 - **Memoize with $derived:** Use `$derived` for filtered/computed lists instead of recalculating in templates
 - **Split reactive dependencies:** Narrow dependency scope to avoid over-reactivity
 - **Always clean up effects:** Return cleanup for intervals, listeners, subscriptions
+- **`getAbortSignal()`:** Cancel stale fetches in `$derived`/`$effect` automatically
 - **Virtualize long lists:** Use `svelte-virtual-list` for 100+ items
 - **Debounce user input:** Use `$effect` with `setTimeout` + cleanup for search inputs
 - **Lazy load components:** Dynamic `import()` for heavy components
@@ -365,18 +581,23 @@ Svelte has built-in a11y compiler warnings. Key practices:
 
 ---
 
-## Svelte 4 Migration Quick Reference
+## Deprecated Patterns to Avoid
 
-| Svelte 4 | Svelte 5 |
-|----------|----------|
-| `let count = 0` | `let count = $state(0)` |
-| `$: doubled = count * 2` | `let doubled = $derived(count * 2)` |
+These Svelte 4 patterns are deprecated or superseded in Svelte 5:
+
+| Deprecated | Replacement |
+|-----------|-------------|
+| `<svelte:component this={X}>` | `<X>` — components are dynamic by default |
+| `use:action` | `{@attach handler}` (5.29+) |
+| `createEventDispatcher()` | Callback props: `let { onclick } = $props()` |
+| `<slot />` / `<slot name="x">` | `{@render children()}` / `{@render x?.()}` |
+| `$app/stores` (`$page`, etc.) | `$app/state` (`page`, `navigating`, `updated`) |
+| `export let` | `let { prop } = $props()` |
+| `$: x = y * 2` | `let x = $derived(y * 2)` |
 | `$: { sideEffect() }` | `$effect(() => { sideEffect() })` |
-| `export let name` | `let { name } = $props()` |
-| `on:click={handler}` | `onclick={handler}` |
-| `<slot />` | `{@render children()}` |
-| `<slot name="x" />` | `{@render x?.()}` |
-| `createEventDispatcher()` | Callback props |
-| `export let value` + `bind:value` | `let { value = $bindable() } = $props()` |
+| `beforeUpdate` / `afterUpdate` | `$effect.pre()` / `$effect()` |
+| `component.$set()` / `$on()` / `$destroy()` | `mount()` / `unmount()` from `svelte` |
+| `accessors` / `immutable` compiler options | No effect in runes mode |
+| Wrapping `SvelteMap`/`SvelteSet`/`MediaQuery` with `$state()` | Use directly — already reactive |
 
 > **Full migration guide:** Read `references/migration.md`

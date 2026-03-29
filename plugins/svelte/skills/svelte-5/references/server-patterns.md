@@ -1,5 +1,49 @@
 # SvelteKit Server Patterns — Full Reference
 
+## $app/state (Replacing $app/stores)
+
+Use `$app/state` instead of the deprecated `$app/stores`:
+
+```svelte
+<script>
+  // OLD (deprecated):
+  // import { page, navigating, updated } from '$app/stores';
+  // Access via $page, $navigating, $updated
+
+  // NEW:
+  import { page, navigating, updated } from '$app/state';
+  // Access directly — no $ prefix, these are runes-based
+</script>
+
+<p>Current path: {page.url.pathname}</p>
+<p>Current user: {page.data.user?.name}</p>
+{#if navigating.to}<p>Navigating to {navigating.to.url.pathname}...</p>{/if}
+```
+
+`$app/stores` is deprecated and will be removed in SvelteKit 3.
+
+## getRequestEvent() — SvelteKit 2.20+
+
+Returns the current `RequestEvent` inside server hooks, load functions, actions, endpoints, and functions called by them. Eliminates the need to pass the event down call chains:
+
+```ts
+import { getRequestEvent } from '$app/server';
+
+// Can be called from any server-side function during a request
+export async function getCurrentUser() {
+  const event = getRequestEvent();
+  return event.locals.user;
+}
+
+export async function requireAuth() {
+  const event = getRequestEvent();
+  if (!event.locals.user) {
+    throw error(401, 'Unauthorized');
+  }
+  return event.locals.user;
+}
+```
+
 ## Load Function Decision Guide
 
 | Use case | File |
@@ -218,3 +262,31 @@ return { user: await db.users.findUnique({ where: { id } }) };
 const user = await db.users.findUnique({ where: { id } });
 return { user: { id: user.id, name: user.name } };
 ```
+
+## Shallow Routing
+
+Update URL/state without full navigation using `pushState`/`replaceState` from `$app/navigation`:
+
+```ts
+import { pushState, replaceState } from '$app/navigation';
+
+// Push new state (adds to history)
+pushState('/items/1', { selected: item });
+
+// Replace current state (no history entry)
+replaceState('', { modal: 'open' });
+```
+
+Access in components via `page.state`:
+
+```svelte
+<script>
+  import { page } from '$app/state';
+</script>
+
+{#if page.state.modal === 'open'}
+  <Modal onclose={() => history.back()} />
+{/if}
+```
+
+Useful for modals, tabs, filters — URL-reflected state that doesn't need a full page load.

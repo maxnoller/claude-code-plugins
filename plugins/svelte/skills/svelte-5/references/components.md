@@ -47,26 +47,24 @@ Usage:
 </List>
 ```
 
-## Full Compound Component Example
+## Compound Components with createContext (5.40+)
+
+`createContext` is the recommended way to share state between related components. It returns a type-safe `[get, set]` tuple with automatic Symbol keys — replacing manual `setContext`/`getContext` with Symbol keys.
 
 ### Accordion
 
 ```svelte
 <!-- Accordion.svelte -->
 <script lang="ts" module>
-  import { getContext, setContext } from 'svelte';
-
-  const ACCORDION_KEY = Symbol('accordion');
+  import { createContext } from 'svelte';
 
   interface AccordionContext {
-    activeItems: Set<string>;
     toggle: (id: string) => void;
     isOpen: (id: string) => boolean;
   }
 
-  export function getAccordionContext(): AccordionContext {
-    return getContext(ACCORDION_KEY);
-  }
+  const [getAccordionCtx, setAccordionCtx] = createContext<AccordionContext>();
+  export { getAccordionCtx };
 </script>
 
 <script lang="ts">
@@ -95,11 +93,7 @@ Usage:
     return activeItems.has(id);
   }
 
-  setContext(ACCORDION_KEY, {
-    get activeItems() { return activeItems },
-    toggle,
-    isOpen
-  });
+  setAccordionCtx({ toggle, isOpen });
 </script>
 
 <div class="accordion">
@@ -111,7 +105,7 @@ Usage:
 <!-- AccordionItem.svelte -->
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import { getAccordionContext } from './Accordion.svelte';
+  import { getAccordionCtx } from './Accordion.svelte';
 
   interface Props {
     id: string;
@@ -120,7 +114,7 @@ Usage:
   }
 
   let { id, header, children }: Props = $props();
-  const { toggle, isOpen } = getAccordionContext();
+  const { toggle, isOpen } = getAccordionCtx();
 
   let open = $derived(isOpen(id));
 </script>
@@ -141,6 +135,8 @@ Usage:
   {/if}
 </div>
 ```
+
+> **Note:** The old `setContext`/`getContext` with manual Symbol keys still works but `createContext` is preferred for new code — it's simpler, type-safe, and less boilerplate.
 
 ## Polymorphic Components
 

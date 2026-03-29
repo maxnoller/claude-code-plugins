@@ -135,3 +135,74 @@ export function createCounter() {
 Only these files support runes:
 - `.svelte` — Components
 - `.svelte.ts` / `.svelte.js` — Modules with runes
+
+## svelte/reactivity Gotchas
+
+### Don't wrap reactive built-ins with $state
+
+`SvelteMap`, `SvelteSet`, `SvelteURL`, `SvelteDate`, and `MediaQuery` from `svelte/reactivity` are already reactive. Wrapping them with `$state()` is redundant and can cause confusion:
+
+```ts
+import { SvelteMap, SvelteSet, MediaQuery } from 'svelte/reactivity';
+
+// WRONG: Double-wrapping
+let items = $state(new SvelteMap());
+let selected = $state(new SvelteSet());
+let isMobile = $state(new MediaQuery('(max-width: 768px)'));
+
+// CORRECT: Use directly
+let items = new SvelteMap();
+let selected = new SvelteSet();
+const isMobile = new MediaQuery('(max-width: 768px)');
+```
+
+## $state.raw Gotchas
+
+### Mutations don't trigger updates
+
+```ts
+let items = $state.raw([1, 2, 3]);
+
+items.push(4);              // Does NOT trigger update
+items = [...items, 4];      // This DOES trigger update
+```
+
+Use `$state.raw` intentionally when you want only reassignment to trigger — typically for large datasets or immutable data patterns.
+
+## Async Gotchas
+
+### getAbortSignal() must be called synchronously
+
+```ts
+// WRONG: Called inside .then()
+let data = $derived(
+  fetch(url).then(r => {
+    const signal = getAbortSignal(); // Too late!
+    return r.json();
+  })
+);
+
+// CORRECT: Called at top level of $derived
+let data = $derived(
+  await fetch(url, { signal: getAbortSignal() }).then(r => r.json())
+);
+```
+
+## Deprecated Pattern Gotchas
+
+### <svelte:component> is unnecessary in Svelte 5
+
+```svelte
+<!-- WRONG: Deprecated in runes mode -->
+<svelte:component this={Component} />
+
+<!-- CORRECT: Components are dynamic by default -->
+<Component />
+
+<!-- Dynamic component from variable works directly -->
+{#if condition}
+  <ComponentA />
+{:else}
+  <ComponentB />
+{/if}
+```
