@@ -117,9 +117,9 @@ function logValue(currentValue) {
 ### Runes must be at top level
 
 ```ts
-// WRONG: Runes inside functions
+// WRONG: Runes inside functions in .svelte files
 function createCounter() {
-  let count = $state(0); // Error!
+  let count = $state(0); // Error in .svelte!
 }
 
 // CORRECT: Use .svelte.ts files for runes outside components
@@ -133,5 +133,5 @@ export function createCounter() {
 ### Runes don't work in regular .ts files
 
 Only these files support runes:
-- `.svelte` - Components
-- `.svelte.ts` / `.svelte.js` - Modules with runes
+- `.svelte` — Components
+- `.svelte.ts` / `.svelte.js` — Modules with runes

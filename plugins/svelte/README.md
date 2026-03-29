@@ -5,13 +5,7 @@ Modern Svelte 5 and SvelteKit development assistant with deep knowledge of runes
 ## Features
 
 ### Skills (Auto-activate based on context)
-- **svelte-runes** - `$state`, `$derived`, `$effect`, `$props`, `$bindable`, `$inspect` patterns
-- **sveltekit-remote-functions** - `query`, `command`, `form`, `batch` patterns + form handling
-- **sveltekit-server** - Load functions, form actions, hooks, `+server.ts`
-- **svelte-performance** - Bundle optimization, memory leaks, reactivity performance
-- **svelte-testing** - Modern testing with Sveltest and `vitest-browser-svelte`
-- **svelte-components** - Headless, compound, snippets, slots, render delegation
-- **svelte-a11y** - Accessibility best practices, ARIA, keyboard navigation
+- **svelte-5** - Unified Svelte 5 + SvelteKit skill covering runes, component patterns, server-side (load functions, form actions, hooks, API routes), remote functions, testing with vitest-browser-svelte, performance optimization, and accessibility
 
 ### Commands
 - `/svelte:new [name]` - Scaffold a new SvelteKit + Svelte 5 + shadcn-svelte project
