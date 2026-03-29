@@ -105,6 +105,16 @@ Stores (`svelte/store`) are not formally deprecated yet but are superseded by ru
 | `component.$on('event', handler)` | Callback props |
 | `component.$destroy()` | `unmount(component)` from `svelte` |
 
+## Other Deprecated Patterns
+
+| Svelte 4 | Svelte 5 |
+|----------|----------|
+| `$$props` / `$$restProps` | `let { ...rest } = $props()` |
+| `$$slots` | Check snippet props: `{#if header}` |
+| `<svelte:self>` | `import Self from './Self.svelte'` then `<Self>` |
+| `<svelte:fragment>` | Snippets: `{#snippet name()}...{/snippet}` |
+| `class:active={isActive}` | `class={['base', isActive && 'active']}` (clsx-style) |
+
 ## Compiler Options
 
 | Svelte 4 | Svelte 5 |

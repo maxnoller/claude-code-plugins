@@ -11,15 +11,18 @@ Svelte 5 uses runes — compiler-driven reactivity primitives that replace Svelt
 
 ### $state — Reactive State
 
+Only use `$state` for variables that actually need reactivity (those read by `$derived`, `$effect`, or templates). Regular variables that don't drive UI updates don't need it.
+
 ```svelte
 <script>
   let count = $state(0);
   let user = $state({ name: 'Alice', age: 30 });
+  let API_URL = 'https://api.example.com'; // Not reactive — no $state needed
 </script>
 <button onclick={() => count++}>{count}</button>
 ```
 
-- Primitives are reactive by value; objects/arrays become deep reactive proxies
+- Primitives are reactive by value; objects/arrays become deep reactive proxies (has performance overhead — use `$state.raw` for large data that's only reassigned)
 - Class instances are NOT made reactive — define `$state` fields inside the class:
 
 ```ts
@@ -60,9 +63,18 @@ console.log(JSON.stringify(plain));
 </script>
 ```
 
-Must be pure — no side effects, no mutating `$state`. Use `$derived.by()` for multi-statement computations.
+Must be pure — no side effects, no mutating `$state`. Use `$derived.by()` for multi-statement computations. Note: `$derived` values are writable (like `$state`), but re-evaluate when their expression's dependencies change.
 
-### $effect — Side Effects
+### $effect — Side Effects (Escape Hatch)
+
+Effects are an escape hatch — avoid them when a better alternative exists:
+- Computing values? Use `$derived` instead
+- Syncing to external DOM libraries? Use `{@attach ...}` instead
+- Responding to user interaction? Put code in event handlers
+- Debug logging? Use `$inspect` or `$inspect.trace()`
+- Observing external state? Use `createSubscriber` from `svelte/reactivity`
+
+When you do need an effect:
 
 ```ts
 $effect(() => {
@@ -71,7 +83,7 @@ $effect(() => {
 });
 ```
 
-Use for DOM manipulation, subscriptions, logging, browser APIs. Never read and write the same state (infinite loop). Prefer `$derived` over `$effect` when computing values.
+Never read and write the same state (infinite loop). Effects don't run during SSR — no need to wrap contents in `if (browser)`.
 
 **Variants:**
 - `$effect.pre()` — runs before DOM updates (replaces `beforeUpdate`)
@@ -93,6 +105,14 @@ Use for DOM manipulation, subscriptions, logging, browser APIs. Never read and w
 
 Rest props: `let { class: className, ...rest } = $props();`
 
+**Assume props will change.** Values derived from props should use `$derived`, not plain assignment:
+
+```ts
+let { type } = $props();
+let color = $derived(type === 'danger' ? 'red' : 'green'); // Updates when type changes
+// WRONG: let color = type === 'danger' ? 'red' : 'green'; // Stale after prop change
+```
+
 ### $bindable — Two-Way Binding
 
 ```svelte
@@ -111,6 +131,8 @@ Rest props: `let { class: className, ...rest } = $props();`
 $inspect(count); // Logs on change, stripped in production
 $inspect(count).with((type, value) => { if (type === 'update') debugger; });
 ```
+
+`$inspect.trace(label)` — add as the first line in `$effect` or `$derived.by` to identify which dependencies triggered re-evaluation. Essential for debugging unexpected reactivity.
 
 ### $host — Custom Elements
 
@@ -362,6 +384,97 @@ Provide behavior without UI by passing state/actions through snippet parameters:
 
 ---
 
+## Events, Styling, and Patterns
+
+### Event Listeners
+
+Any attribute starting with `on` becomes an event listener. Use shorthand and spread:
+
+```svelte
+<button onclick={() => count++}>click</button>
+<button {onclick}>shorthand</button>
+<button {...props}>spread</button>
+```
+
+For window/document listeners, use special elements instead of `onMount` or `$effect`:
+
+```svelte
+<svelte:window onkeydown={handleKey} />
+<svelte:document onvisibilitychange={handleVisibility} />
+```
+
+### Each Blocks
+
+Always use keyed each blocks — they enable surgical DOM insertion/removal instead of updating existing elements:
+
+```svelte
+{#each items as item (item.id)}
+  <Item {item} />
+{/each}
+```
+
+**Never use array indices as keys.** Avoid destructuring when mutating items (e.g., use `bind:value={item.count}` with the full `item` reference).
+
+### CSS Custom Properties
+
+Pass JS variables into CSS via the `style:` directive:
+
+```svelte
+<div style:--columns={columns}>
+  <!-- Uses var(--columns) in <style> -->
+</div>
+```
+
+### Styling Child Components
+
+Use CSS custom properties to control child styles from parent:
+
+```svelte
+<!-- Parent -->
+<Child --color="red" />
+
+<!-- Child.svelte -->
+<h1>Hello</h1>
+<style>
+  h1 { color: var(--color); }
+</style>
+```
+
+When you can't use custom properties (e.g., library components), use `:global`:
+
+```svelte
+<div>
+  <LibraryComponent />
+</div>
+<style>
+  div :global {
+    h1 { color: red; }
+  }
+</style>
+```
+
+### Class Attributes
+
+Prefer clsx-style arrays/objects in `class` attributes over the `class:` directive:
+
+```svelte
+<div class={['card', isActive && 'active', size === 'lg' && 'card-lg']}>
+```
+
+### Context Over Module State
+
+Prefer context (`createContext`) over shared module-level state. Module state is shared across all requests during SSR, which can leak data between users. Context scopes state to the component tree:
+
+```ts
+// WRONG: Module-level state — shared across SSR requests
+let user = $state(null);
+
+// CORRECT: Use context
+const [getUser, setUser] = createContext<User>();
+```
+
+---
+
 ## SvelteKit Server
 
 ### $app/state (Replacing $app/stores)
@@ -599,5 +712,10 @@ These Svelte 4 patterns are deprecated or superseded in Svelte 5:
 | `component.$set()` / `$on()` / `$destroy()` | `mount()` / `unmount()` from `svelte` |
 | `accessors` / `immutable` compiler options | No effect in runes mode |
 | Wrapping `SvelteMap`/`SvelteSet`/`MediaQuery` with `$state()` | Use directly — already reactive |
+| `$$props` / `$$restProps` | `let { ...rest } = $props()` |
+| `<svelte:self>` | `import Self from './Self.svelte'` then `<Self>` |
+| `$$slots` | Check snippet props: `{#if header}` |
+| `<svelte:fragment>` | Snippets: `{#snippet name()}...{/snippet}` |
+| `class:active={isActive}` directive | `class={['base', isActive && 'active']}` |
 
 > **Full migration guide:** Read `references/migration.md`
