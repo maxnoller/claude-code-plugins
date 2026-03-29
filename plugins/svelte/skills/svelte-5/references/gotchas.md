@@ -206,3 +206,14 @@ let data = $derived(
   <ComponentB />
 {/if}
 ```
+
+## $host — Custom Elements
+
+The `$host` rune is only available inside components compiled with `customElement: true`. It returns the host element for dispatching custom events:
+
+```ts
+let host = $host();
+host.dispatchEvent(new CustomEvent('change', { detail: value }));
+```
+
+Using `$host()` outside a custom element component will throw an error.

@@ -85,6 +85,44 @@ $effect(() => {
 
 Never read and write the same state (infinite loop). Effects don't run during SSR — no need to wrap contents in `if (browser)`.
 
+**Common antipattern — `$effect` for data fetching.** If you see `$effect` + `.then()` + a cancelled flag to fetch data when inputs change, replace it with async `$derived` + `getAbortSignal()` + `<svelte:boundary>` (requires `experimental.async`):
+
+```svelte
+<!-- WRONG: Manual fetch with cancellation boilerplate -->
+<script>
+  let query = $state('');
+  let results = $state([]);
+  let loading = $state(false);
+
+  $effect(() => {
+    let cancelled = false;
+    loading = true;
+    fetch(`/api/search?q=${query}`)
+      .then(r => r.json())
+      .then(data => { if (!cancelled) results = data; })
+      .finally(() => { if (!cancelled) loading = false; });
+    return () => { cancelled = true; };
+  });
+</script>
+
+<!-- CORRECT: Async $derived handles cancellation and loading automatically -->
+<script>
+  import { getAbortSignal } from 'svelte';
+  let query = $state('');
+  let results = $derived(await fetch(`/api/search?q=${query}`, {
+    signal: getAbortSignal()
+  }).then(r => r.json()));
+</script>
+
+<svelte:boundary>
+  {#each results as item (item.id)}
+    <div>{item.name}</div>
+  {/each}
+  {#snippet pending()}<p>Loading...</p>{/snippet}
+  {#snippet failed(error, reset)}<p>{error.message}</p><button onclick={reset}>Retry</button>{/snippet}
+</svelte:boundary>
+```
+
 **Variants:**
 - `$effect.pre()` — runs before DOM updates (replaces `beforeUpdate`)
 - `$effect.tracking()` — returns `true` if inside a tracking context (useful in libraries)
@@ -134,15 +172,6 @@ $inspect(count).with((type, value) => { if (type === 'update') debugger; });
 
 `$inspect.trace(label)` — add as the first line in `$effect` or `$derived.by` to identify which dependencies triggered re-evaluation. Essential for debugging unexpected reactivity.
 
-### $host — Custom Elements
-
-Within components compiled with `customElement: true`, `$host()` returns the host element for dispatching custom events:
-
-```ts
-let host = $host();
-host.dispatchEvent(new CustomEvent('change', { detail: value }));
-```
-
 ### Runes in .svelte.ts Files
 
 Use runes outside components in `.svelte.ts` files. Only rename to `.svelte.ts` when the file directly declares runes — files that merely import rune-using functions stay as `.ts`.
@@ -166,7 +195,7 @@ export function createCounter(initial = 0) {
 4. `$derived` tracks dependencies at runtime, not compile time
 5. Always return cleanup from `$effect` for intervals, listeners, subscriptions
 
-> **Deep dive:** Read `references/gotchas.md` for common mistakes. Read `references/migration.md` for Svelte 4 to 5 migration patterns.
+> **When to read references:** If you encounter `$state` wrapping class instances, `$derived` causing infinite loops, or `$effect` with stale closures → read `references/gotchas.md`. If migrating a codebase from Svelte 4 syntax (`$:`, `export let`, `on:click`, `<slot>`) → read `references/migration.md`.
 
 ---
 
@@ -208,7 +237,7 @@ export function tooltip(text: string) {
 - Use `fromAction()` from `svelte/attachments` to wrap existing actions
 - Use `createAttachmentKey()` for typed attachment props
 
-> **Deep dive:** Read `references/attachments.md` for `fromAction()`, `createAttachmentKey()`, click-outside patterns, and migration from actions.
+> **When to read references:** If migrating existing `use:action` code, building click-outside handlers, or need typed attachment props → read `references/attachments.md`.
 
 ---
 
@@ -261,7 +290,7 @@ let data = $derived(await fetch(`/api/items?q=${query}`, {
 - **`fork()`** (5.42+) — runs state changes offscreen to discover async work without committing. Used by SvelteKit for preloading
 - **`settled()`** — returns a promise that resolves when all async work in the tree completes
 
-> **Deep dive:** Read `references/async.md` for full async patterns, SSR considerations, and boundary composition.
+> **When to read references:** If composing nested boundaries, handling async SSR errors, or using `fork()`/`settled()` → read `references/async.md`.
 
 ---
 
@@ -380,7 +409,7 @@ Provide behavior without UI by passing state/actions through snippet parameters:
 </svelte:element>
 ```
 
-> **Deep dive:** Read `references/components.md` for full compound component, controlled/uncontrolled, and forwarding patterns.
+> **When to read references:** If building compound components with shared state, implementing controlled/uncontrolled inputs, or forwarding props with TypeScript → read `references/components.md`.
 
 ---
 
@@ -566,7 +595,7 @@ pushState('/items/1', { selected: item });
 
 Access in components via `page.state`.
 
-> **Deep dive:** Read `references/server-patterns.md` for complete hooks, streaming, locals typing, navigation, and antipattern examples.
+> **When to read references:** If composing multiple hooks with `sequence()`, streaming deferred data, typing `event.locals` in `app.d.ts`, or implementing shallow routing → read `references/server-patterns.md`.
 
 ---
 
@@ -606,7 +635,43 @@ export const login = form(async ({ request }) => {
 
 Place `.remote.ts` files anywhere in `src/` except `src/lib/server/`. Use remote functions for interaction-triggered data; use load functions for SSR/SEO-critical data.
 
-> **Deep dive:** Read `references/remote-functions.md` for form field API, batch patterns, .enhance(), streaming uploads, and comparison with load functions.
+### Accessing Request Context in Remote Functions
+
+Use `getRequestEvent()` to access auth, locals, or cookies inside remote functions without passing them as arguments:
+
+```ts
+// src/lib/todos.remote.ts
+import { query } from '$app/server';
+import { getRequestEvent } from '$app/server';
+
+export const getTodos = query(async () => {
+  const { locals } = getRequestEvent();
+  if (!locals.user) throw new Error('Unauthorized');
+  return await db.todos.findMany({ where: { userId: locals.user.id } });
+});
+```
+
+### Input Validation
+
+Always validate inputs in remote functions and form actions. Use [valibot](https://valibot.dev) (lighter, tree-shakeable) or [zod](https://zod.dev) for schema validation:
+
+```ts
+import { command } from '$app/server';
+import { invalid } from '@sveltejs/kit';
+import * as v from 'valibot';
+
+const CreateTodoSchema = v.object({
+  text: v.pipe(v.string(), v.minLength(1, 'Required'), v.maxLength(200)),
+});
+
+export const createTodo = command(async (input: unknown) => {
+  const result = v.safeParse(CreateTodoSchema, input);
+  if (!result.success) return invalid(400, { issues: result.issues });
+  return await db.todos.create({ data: { text: result.output.text, done: false } });
+});
+```
+
+> **When to read references:** If using form field API (`.fields`, `.as()`), request batching, `.enhance()` for custom submission, or comparing remote functions vs load functions → read `references/remote-functions.md`.
 
 ---
 
@@ -653,7 +718,7 @@ it('increments', () => {
 - Browser tests: `*.svelte.test.ts` (include pattern: `src/**/*.svelte.{test,spec}.ts`)
 - Server/node tests: `*.test.ts` (include pattern: `src/**/*.{test,spec}.ts`)
 
-> **Deep dive:** Read `references/testing.md` for full setup config, form testing, async testing, snippet testing, and mocking patterns.
+> **When to read references:** If setting up vitest from scratch, testing forms/async/snippets, mocking fetch, or configuring client vs server test projects → read `references/testing.md`.
 
 ---
 
@@ -673,7 +738,7 @@ Svelte 5's fine-grained reactivity is fast by default. Key optimizations:
 - **Stream non-critical data:** Return promises (no `await`) from load functions for streaming
 - **Use `preloadData`:** `import { preloadData } from '$app/navigation'` on hover for fast navigation
 
-> **Deep dive:** Read `references/performance.md` for bundle analysis, image optimization, profiling, and the full performance checklist.
+> **When to read references:** If analyzing bundle size, optimizing images, profiling with DevTools/Lighthouse, or running through a pre-deploy performance checklist → read `references/performance.md`.
 
 ---
 
@@ -690,7 +755,7 @@ Svelte has built-in a11y compiler warnings. Key practices:
 - **Reduced motion:** Respect `prefers-reduced-motion` with CSS media query
 - **Contrast:** 4.5:1 for normal text, 3:1 for large text and UI components
 
-> **Deep dive:** Read `references/a11y.md` for complete ARIA patterns (tabs, accordion, dialogs), focus trap implementation, and testing with axe-core.
+> **When to read references:** If implementing ARIA patterns (tabs, accordion, dialogs), building focus traps, or setting up automated a11y testing with axe-core → read `references/a11y.md`.
 
 ---
 
