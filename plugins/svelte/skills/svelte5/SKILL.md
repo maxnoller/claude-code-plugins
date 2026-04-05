@@ -1,5 +1,5 @@
 ---
-name: svelte-5
+name: svelte5
 description: This skill should be used when the user asks to "write a Svelte component", "add $state", "use $derived", "create a SvelteKit page", "add form actions", "set up remote functions", "test Svelte components", "fix Svelte antipatterns", "migrate from Svelte 4", "use attachments", "add async await to Svelte", "review .svelte files", or works with any .svelte/.svelte.ts files, runes, SvelteKit routes, or Svelte 5 patterns. This skill should also be triggered when the context involves Svelte or SvelteKit code even if the user doesn't explicitly say "Svelte" — for example when editing files with .svelte extensions or working in a SvelteKit project structure.
 ---
 

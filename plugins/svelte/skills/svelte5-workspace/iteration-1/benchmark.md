@@ -1,4 +1,4 @@
-# Skill Benchmark: svelte-5
+# Skill Benchmark: svelte5
 
 **Model**: <model-name>
 **Date**: 2026-03-29T04:33:09Z
