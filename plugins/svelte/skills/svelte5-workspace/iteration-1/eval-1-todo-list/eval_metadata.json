@@ -1,0 +1,14 @@
+{
+  "eval_id": 1,
+  "eval_name": "todo-list-runes-snippets",
+  "prompt": "Build me a todo list component in Svelte 5. I want $state for the todos array, $derived to compute how many are left, and I want to use snippets so the consumer can customize how each row renders. Include a text input to add new todos and a toggle for each one.",
+  "assertions": [
+    { "text": "Uses $state() for the todos array", "type": "code_pattern" },
+    { "text": "Uses $derived() or $derived.by() to compute remaining/incomplete count", "type": "code_pattern" },
+    { "text": "Defines or accepts a Snippet type (imports from 'svelte')", "type": "code_pattern" },
+    { "text": "Uses {@render ...} syntax for snippet rendering (not <slot>)", "type": "code_pattern" },
+    { "text": "Uses onclick handler (not on:click Svelte 4 syntax)", "type": "code_pattern" },
+    { "text": "Includes a text input for adding new todos", "type": "code_pattern" },
+    { "text": "Has a toggle mechanism (checkbox or button) per todo", "type": "code_pattern" }
+  ]
+}

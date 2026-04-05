@@ -1,0 +1,11 @@
+{
+  "expectations": [
+    { "text": "Has a +page.server.ts with a typed load function (PageServerLoad)", "passed": true, "evidence": "export const load: PageServerLoad = async () => {" },
+    { "text": "Has named form actions (e.g. create, delete) in the actions export", "passed": true, "evidence": "export const actions: Actions = { create: async ({ request }) => { ... }, delete: async ({ request }) => { ... } };" },
+    { "text": "Uses fail() from @sveltejs/kit for validation errors", "passed": true, "evidence": "import { fail } from '@sveltejs/kit'; and return fail(400, { ... })" },
+    { "text": "Has a +page.svelte that uses use:enhance for progressive enhancement", "passed": true, "evidence": "import { enhance } from '$app/forms'; and use:enhance on both forms" },
+    { "text": "Uses Svelte 5 syntax ($props, onclick) not Svelte 4 (export let, on:click)", "passed": true, "evidence": "let { data, form } = $props(); and no on:click directives found" },
+    { "text": "Test file imports from vitest and tests the load function", "passed": true, "evidence": "import { describe, it, expect, vi, beforeEach } from 'vitest'; and describe('Blog posts load function', ...)" },
+    { "text": "Test file uses .test.ts extension (not .svelte.test.ts) for server-side code", "passed": true, "evidence": "File is named page.server.test.ts (not page.server.svelte.test.ts)" }
+  ]
+}

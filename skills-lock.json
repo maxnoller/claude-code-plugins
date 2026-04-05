@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "svelte-5": {
+      "source": "/home/max/projects/claude-code-plugins/plugins/svelte",
+      "sourceType": "local",
+      "computedHash": "98375ad782e07494d6d19a0d4f27c50ed6809f3ada23547a0619b23a9c1f5000"
+    },
+    "svelte-ui-stack": {
+      "source": "/home/max/projects/claude-code-plugins/plugins/svelte",
+      "sourceType": "local",
+      "computedHash": "9339ada06b2594111e5bc38eac229b093f9fe0512acbcf3ba176fdc7a9cd5eee"
+    }
+  }
+}

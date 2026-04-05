@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "svelte-5", "runs": [{"id": "eval-1-todo-list-with_skill", "prompt": "Build me a todo list component in Svelte 5. I want $state for the todos array, $derived to compute how many are left, and I want to use snippets so the consumer can customize how each row renders. Include a text input to add new todos and a toggle for each one.", "eval_id": 1, "outputs": [{"name": "App.svelte", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,PHNjcmlwdCBsYW5nPSJ0cyI+CglpbXBvcnQgVG9kb0xpc3QgZnJvbSAnLi9Ub2RvTGlzdC5zdmVsdGUnOwo8L3NjcmlwdD4KCjxtYWluPgoJPGgxPlRvZG8gQXBwPC9oMT4KCgk8c2VjdGlvbj4KCQk8aDI+RGVmYXVsdCByZW5kZXJpbmc8L2gyPgoJCTxUb2RvTGlzdCAvPgoJPC9zZWN0aW9uPgoKCTxzZWN0aW9uPgoJCTxoMj5DdXN0b20gcm93IHZpYSBzbmlwcGV0PC9oMj4KCQk8VG9kb0xpc3Q+CgkJCXsjc25pcHBldCByb3codG9kbywgdG9nZ2xlKX0KCQkJCTxkaXYgY2xhc3M9ImN1c3RvbS1yb3ciPgoJCQkJCTxidXR0b24gY2xhc3M9InRvZ2dsZS1idG4iIG9uY2xpY2s9eygpID0+IHRvZ2dsZSh0b2RvLmlkKX0+CgkJCQkJCXt0b2RvLmRvbmUgPyAn4pyUJyA6ICfil4snfQoJCQkJCTwvYnV0dG9uPgoJCQkJCTxzcGFuIGNsYXNzOnN0cnVjaz17dG9kby5kb25lfT57dG9kby50ZXh0fTwvc3Bhbj4KCQkJCQl7I2lmIHRvZG8uZG9uZX0KCQkJCQkJPHNwYW4gY2xhc3M9ImJhZGdlIj5kb25lPC9zcGFuPgoJCQkJCXsvaWZ9CgkJCQk8L2Rpdj4KCQkJey9zbmlwcGV0fQoJCTwvVG9kb0xpc3Q+Cgk8L3NlY3Rpb24+CjwvbWFpbj4KCjxzdHlsZT4KCW1haW4gewoJCW1heC13aWR0aDogMzZyZW07CgkJbWFyZ2luOiAycmVtIGF1dG87CgkJZm9udC1mYW1pbHk6IHN5c3RlbS11aSwgLWFwcGxlLXN5c3RlbSwgc2Fucy1zZXJpZjsKCX0KCglzZWN0aW9uIHsKCQltYXJnaW4tYm90dG9tOiAycmVtOwoJfQoKCWgxIHsKCQlmb250LXNpemU6IDEuNXJlbTsKCQltYXJnaW4tYm90dG9tOiAxLjVyZW07Cgl9CgoJaDIgewoJCWZvbnQtc2l6ZTogMS4xMjVyZW07CgkJbWFyZ2luLWJvdHRvbTogMC43NXJlbTsKCQljb2xvcjogIzM3NDE1MTsKCX0KCgkuY3VzdG9tLXJvdyB7CgkJZGlzcGxheTogZmxleDsKCQlhbGlnbi1pdGVtczogY2VudGVyOwoJCWdhcDogMC41cmVtOwoJCXBhZGRpbmc6IDAuMjVyZW0gMDsKCX0KCgkudG9nZ2xlLWJ0biB7CgkJYmFja2dyb3VuZDogbm9uZTsKCQlib3JkZXI6IDFweCBzb2xpZCAjZDFkNWRiOwoJCWJvcmRlci1yYWRpdXM6IDUwJTsKCQl3aWR0aDogMS41cmVtOwoJCWhlaWdodDogMS41cmVtOwoJCWN1cnNvcjogcG9pbnRlcjsKCQlmb250LXNpemU6IDAuNzVyZW07CgkJZGlzcGxheTogZmxleDsKCQlhbGlnbi1pdGVtczogY2VudGVyOwoJCWp1c3RpZnktY29udGVudDogY2VudGVyOwoJfQoKCS5zdHJ1Y2sgewoJCXRleHQtZGVjb3JhdGlvbjogbGluZS10aHJvdWdoOwoJCW9wYWNpdHk6IDAuNTsKCX0KCgkuYmFkZ2UgewoJCWZvbnQtc2l6ZTogMC42MjVyZW07CgkJdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsKCQliYWNrZ3JvdW5kOiAjZDFmYWU1OwoJCWNvbG9yOiAjMDY1ZjQ2OwoJCXBhZGRpbmc6IDAuMTI1cmVtIDAuMzc1cmVtOwoJCWJvcmRlci1yYWRpdXM6IDk5OTlweDsKCX0KPC9zdHlsZT4K"}, {"name": "TodoList.svelte", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,PHNjcmlwdCBsYW5nPSJ0cyI+CglpbXBvcnQgdHlwZSB7IFNuaXBwZXQgfSBmcm9tICdzdmVsdGUnOwoKCWludGVyZmFjZSBUb2RvIHsKCQlpZDogbnVtYmVyOwoJCXRleHQ6IHN0cmluZzsKCQlkb25lOiBib29sZWFuOwoJfQoKCWludGVyZmFjZSBQcm9wcyB7CgkJcm93PzogU25pcHBldDxbdG9kbzogVG9kbywgdG9nZ2xlOiAoaWQ6IG51bWJlcikgPT4gdm9pZF0+OwoJfQoKCWxldCB7IHJvdyB9OiBQcm9wcyA9ICRwcm9wcygpOwoKCWxldCB0b2RvcyA9ICRzdGF0ZTxUb2RvW10+KFtdKTsKCWxldCBuZXdUZXh0ID0gJHN0YXRlKCcnKTsKCWxldCBuZXh0SWQgPSAkc3RhdGUoMSk7CgoJbGV0IHJlbWFpbmluZyA9ICRkZXJpdmVkKHRvZG9zLmZpbHRlcigodCkgPT4gIXQuZG9uZSkubGVuZ3RoKTsKCglmdW5jdGlvbiBhZGRUb2RvKCkgewoJCWNvbnN0IHRyaW1tZWQgPSBuZXdUZXh0LnRyaW0oKTsKCQlpZiAoIXRyaW1tZWQpIHJldHVybjsKCQl0b2Rvcy5wdXNoKHsgaWQ6IG5leHRJZCsrLCB0ZXh0OiB0cmltbWVkLCBkb25lOiBmYWxzZSB9KTsKCQluZXdUZXh0ID0gJyc7Cgl9CgoJZnVuY3Rpb24gdG9nZ2xlKGlkOiBudW1iZXIpIHsKCQljb25zdCB0b2RvID0gdG9kb3MuZmluZCgodCkgPT4gdC5pZCA9PT0gaWQpOwoJCWlmICh0b2RvKSB0b2RvLmRvbmUgPSAhdG9kby5kb25lOwoJfQoKCWZ1bmN0aW9uIGhhbmRsZUtleWRvd24oZXZlbnQ6IEtleWJvYXJkRXZlbnQpIHsKCQlpZiAoZXZlbnQua2V5ID09PSAnRW50ZXInKSB7CgkJCWFkZFRvZG8oKTsKCQl9Cgl9Cjwvc2NyaXB0PgoKPGRpdiBjbGFzcz0idG9kby1saXN0Ij4KCTxkaXYgY2xhc3M9InRvZG8taW5wdXQiPgoJCTxsYWJlbCBmb3I9Im5ldy10b2RvIj5OZXcgdG9kbzwvbGFiZWw+CgkJPGlucHV0CgkJCWlkPSJuZXctdG9kbyIKCQkJdHlwZT0idGV4dCIKCQkJcGxhY2Vob2xkZXI9IldoYXQgbmVlZHMgdG8gYmUgZG9uZT8iCgkJCWJpbmQ6dmFsdWU9e25ld1RleHR9CgkJCW9ua2V5ZG93bj17aGFuZGxlS2V5ZG93bn0KCQkvPgoJCTxidXR0b24gb25jbGljaz17YWRkVG9kb30+QWRkPC9idXR0b24+Cgk8L2Rpdj4KCgk8cCBjbGFzcz0icmVtYWluaW5nIj57cmVtYWluaW5nfSBpdGVte3JlbWFpbmluZyA9PT0gMSA/ICcnIDogJ3MnfSByZW1haW5pbmc8L3A+CgoJPHVsPgoJCXsjZWFjaCB0b2RvcyBhcyB0b2RvICh0b2RvLmlkKX0KCQkJPGxpPgoJCQkJeyNpZiByb3d9CgkJCQkJe0ByZW5kZXIgcm93KHRvZG8sIHRvZ2dsZSl9CgkJCQl7OmVsc2V9CgkJCQkJPGxhYmVsPgoJCQkJCQk8aW5wdXQKCQkJCQkJCXR5cGU9ImNoZWNrYm94IgoJCQkJCQkJY2hlY2tlZD17dG9kby5kb25lfQoJCQkJCQkJb25jaGFuZ2U9eygpID0+IHRvZ2dsZSh0b2RvLmlkKX0KCQkJCQkJLz4KCQkJCQkJPHNwYW4gY2xhc3M6ZG9uZT17dG9kby5kb25lfT57dG9kby50ZXh0fTwvc3Bhbj4KCQkJCQk8L2xhYmVsPgoJCQkJey9pZn0KCQkJPC9saT4KCQl7L2VhY2h9Cgk8L3VsPgo8L2Rpdj4KCjxzdHlsZT4KCS50b2RvLWxpc3QgewoJCW1heC13aWR0aDogMjhyZW07CgkJZm9udC1mYW1pbHk6IHN5c3RlbS11aSwgLWFwcGxlLXN5c3RlbSwgc2Fucy1zZXJpZjsKCX0KCgkudG9kby1pbnB1dCB7CgkJZGlzcGxheTogZmxleDsKCQlnYXA6IDAuNXJlbTsKCQlhbGlnbi1pdGVtczogZW5kOwoJCW1hcmdpbi1ib3R0b206IDAuNzVyZW07Cgl9CgoJLnRvZG8taW5wdXQgbGFiZWwgewoJCXBvc2l0aW9uOiBhYnNvbHV0ZTsKCQl3aWR0aDogMXB4OwoJCWhlaWdodDogMXB4OwoJCW92ZXJmbG93OiBoaWRkZW47CgkJY2xpcDogcmVjdCgwLCAwLCAwLCAwKTsKCX0KCgkudG9kby1pbnB1dCBpbnB1dCB7CgkJZmxleDogMTsKCQlwYWRkaW5nOiAwLjVyZW07CgkJYm9yZGVyOiAxcHggc29saWQgI2QxZDVkYjsKCQlib3JkZXItcmFkaXVzOiA0cHg7CgkJZm9udC1zaXplOiAwLjg3NXJlbTsKCX0KCgkudG9kby1pbnB1dCBidXR0b24gewoJCXBhZGRpbmc6IDAuNXJlbSAxcmVtOwoJCWJhY2tncm91bmQ6ICMzYjgyZjY7CgkJY29sb3I6IHdoaXRlOwoJCWJvcmRlcjogbm9uZTsKCQlib3JkZXItcmFkaXVzOiA0cHg7CgkJY3Vyc29yOiBwb2ludGVyOwoJCWZvbnQtc2l6ZTogMC44NzVyZW07Cgl9CgoJLnRvZG8taW5wdXQgYnV0dG9uOmhvdmVyIHsKCQliYWNrZ3JvdW5kOiAjMjU2M2ViOwoJfQoKCS5yZW1haW5pbmcgewoJCWZvbnQtc2l6ZTogMC44NzVyZW07CgkJY29sb3I6ICM2YjcyODA7CgkJbWFyZ2luOiAwIDAgMC41cmVtOwoJfQoKCXVsIHsKCQlsaXN0LXN0eWxlOiBub25lOwoJCXBhZGRpbmc6IDA7CgkJbWFyZ2luOiAwOwoJfQoKCWxpIHsKCQlwYWRkaW5nOiAwLjM3NXJlbSAwOwoJCWJvcmRlci1ib3R0b206IDFweCBzb2xpZCAjZjNmNGY2OwoJfQoKCWxpIGxhYmVsIHsKCQlkaXNwbGF5OiBmbGV4OwoJCWFsaWduLWl0ZW1zOiBjZW50ZXI7CgkJZ2FwOiAwLjVyZW07CgkJY3Vyc29yOiBwb2ludGVyOwoJfQoKCS5kb25lIHsKCQl0ZXh0LWRlY29yYXRpb246IGxpbmUtdGhyb3VnaDsKCQljb2xvcjogIzljYTNhZjsKCX0KPC9zdHlsZT4K"}], "grading": {"expectations": [{"text": "Uses $state() for the todos array", "passed": true, "evidence": "let todos = $state<Todo[]>([]);"}, {"text": "Uses $derived() or $derived.by() to compute remaining/incomplete count", "passed": true, "evidence": "let remaining = $derived(todos.filter((t) => !t.done).length);"}, {"text": "Defines or accepts a Snippet type (imports from 'svelte')", "passed": true, "evidence": "import type { Snippet } from 'svelte';"}, {"text": "Uses {@render ...} syntax for snippet rendering (not <slot>)", "passed": true, "evidence": "{@render row(todo, toggle)}"}, {"text": "Uses onclick handler (not on:click Svelte 4 syntax)", "passed": true, "evidence": "onclick={addTodo} and onkeydown={handleKeydown}"}, {"text": "Includes a text input for adding new todos", "passed": true, "evidence": "<input id=\"new-todo\" type=\"text\" placeholder=\"What needs to be done?\" bind:value={newText} />"}, {"text": "Has a toggle mechanism (checkbox or button) per todo", "passed": true, "evidence": "<input type=\"checkbox\" checked={todo.done} onchange={() => toggle(todo.id)} />"}]}}, {"id": "eval-1-todo-list-without_skill", "prompt": "Build me a todo list component in Svelte 5. I want $state for the todos array, $derived to compute how many are left, and I want to use snippets so the consumer can customize how each row renders. Include a text input to add new todos and a toggle for each one.", "eval_id": 1, "outputs": [{"name": "App.svelte", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,PHNjcmlwdCBsYW5nPSJ0cyI+CglpbXBvcnQgVG9kb0xpc3QgZnJvbSAnLi9Ub2RvTGlzdC5zdmVsdGUnOwo8L3NjcmlwdD4KCjxoMT5Ub2RvIEFwcDwvaDE+Cgo8aDI+RGVmYXVsdCByZW5kZXJpbmc8L2gyPgo8VG9kb0xpc3QKCWluaXRpYWw9e1sKCQl7IGlkOiAxLCB0ZXh0OiAnQnV5IGdyb2NlcmllcycsIGRvbmU6IGZhbHNlIH0sCgkJeyBpZDogMiwgdGV4dDogJ1dhbGsgdGhlIGRvZycsIGRvbmU6IHRydWUgfQoJXX0KLz4KCjxoMj5DdXN0b20gcm93IHZpYSBzbmlwcGV0PC9oMj4KPFRvZG9MaXN0Cglpbml0aWFsPXtbCgkJeyBpZDogMSwgdGV4dDogJ1JlYWQgYSBib29rJywgZG9uZTogZmFsc2UgfSwKCQl7IGlkOiAyLCB0ZXh0OiAnV3JpdGUgc29tZSBjb2RlJywgZG9uZTogZmFsc2UgfQoJXX0KPgoJeyNzbmlwcGV0IHJvdyh7IHRvZG8sIHRvZ2dsZSB9KX0KCQk8ZGl2IGNsYXNzPSJjdXN0b20tcm93Ij4KCQkJPGJ1dHRvbiBvbmNsaWNrPXt0b2dnbGV9PgoJCQkJe3RvZG8uZG9uZSA/ICfinIUnIDogJ+KsnCd9CgkJCTwvYnV0dG9uPgoJCQk8c3BhbiBjbGFzczpzdHJ1Y2s9e3RvZG8uZG9uZX0+e3RvZG8udGV4dH08L3NwYW4+CgkJPC9kaXY+Cgl7L3NuaXBwZXR9CjwvVG9kb0xpc3Q+Cgo8c3R5bGU+CgloMSB7CgkJZm9udC1mYW1pbHk6IHN5c3RlbS11aSwgc2Fucy1zZXJpZjsKCX0KCgloMiB7CgkJZm9udC1mYW1pbHk6IHN5c3RlbS11aSwgc2Fucy1zZXJpZjsKCQlmb250LXNpemU6IDEuMXJlbTsKCQltYXJnaW4tdG9wOiAycmVtOwoJfQoKCS5jdXN0b20tcm93IHsKCQlkaXNwbGF5OiBmbGV4OwoJCWFsaWduLWl0ZW1zOiBjZW50ZXI7CgkJZ2FwOiAwLjVyZW07Cgl9CgoJLmN1c3RvbS1yb3cgYnV0dG9uIHsKCQliYWNrZ3JvdW5kOiBub25lOwoJCWJvcmRlcjogbm9uZTsKCQljdXJzb3I6IHBvaW50ZXI7CgkJZm9udC1zaXplOiAxLjJyZW07CgkJcGFkZGluZzogMDsKCX0KCgkuc3RydWNrIHsKCQl0ZXh0LWRlY29yYXRpb246IGxpbmUtdGhyb3VnaDsKCQljb2xvcjogIzk5OTsKCX0KPC9zdHlsZT4K"}, {"name": "TodoList.svelte", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,PHNjcmlwdCBsYW5nPSJ0cyI+CglpbXBvcnQgdHlwZSB7IFNuaXBwZXQgfSBmcm9tICdzdmVsdGUnOwoKCWludGVyZmFjZSBUb2RvIHsKCQlpZDogbnVtYmVyOwoJCXRleHQ6IHN0cmluZzsKCQlkb25lOiBib29sZWFuOwoJfQoKCWludGVyZmFjZSBQcm9wcyB7CgkJaW5pdGlhbD86IFRvZG9bXTsKCQlyb3c/OiBTbmlwcGV0PFt7IHRvZG86IFRvZG87IHRvZ2dsZTogKCkgPT4gdm9pZCB9XT47Cgl9CgoJbGV0IHsgaW5pdGlhbCA9IFtdLCByb3cgfTogUHJvcHMgPSAkcHJvcHMoKTsKCglsZXQgdG9kb3M6IFRvZG9bXSA9ICRzdGF0ZShpbml0aWFsKTsKCWxldCBuZXdUZXh0ID0gJHN0YXRlKCcnKTsKCWxldCBuZXh0SWQgPSAkc3RhdGUoaW5pdGlhbC5sZW5ndGggPyBNYXRoLm1heCguLi5pbml0aWFsLm1hcCgodCkgPT4gdC5pZCkpICsgMSA6IDEpOwoKCWxldCByZW1haW5pbmcgPSAkZGVyaXZlZCh0b2Rvcy5maWx0ZXIoKHQpID0+ICF0LmRvbmUpLmxlbmd0aCk7CgoJZnVuY3Rpb24gYWRkVG9kbygpIHsKCQljb25zdCB0cmltbWVkID0gbmV3VGV4dC50cmltKCk7CgkJaWYgKCF0cmltbWVkKSByZXR1cm47CgkJdG9kb3MucHVzaCh7IGlkOiBuZXh0SWQrKywgdGV4dDogdHJpbW1lZCwgZG9uZTogZmFsc2UgfSk7CgkJbmV3VGV4dCA9ICcnOwoJfQoKCWZ1bmN0aW9uIHRvZ2dsZShpZDogbnVtYmVyKSB7CgkJY29uc3QgdG9kbyA9IHRvZG9zLmZpbmQoKHQpID0+IHQuaWQgPT09IGlkKTsKCQlpZiAodG9kbykgdG9kby5kb25lID0gIXRvZG8uZG9uZTsKCX0KCglmdW5jdGlvbiBoYW5kbGVLZXlkb3duKGU6IEtleWJvYXJkRXZlbnQpIHsKCQlpZiAoZS5rZXkgPT09ICdFbnRlcicpIGFkZFRvZG8oKTsKCX0KPC9zY3JpcHQ+Cgo8ZGl2IGNsYXNzPSJ0b2RvLWxpc3QiPgoJPGRpdiBjbGFzcz0iaW5wdXQtcm93Ij4KCQk8aW5wdXQKCQkJdHlwZT0idGV4dCIKCQkJcGxhY2Vob2xkZXI9IkFkZCBhIHRvZG8uLi4iCgkJCWJpbmQ6dmFsdWU9e25ld1RleHR9CgkJCW9ua2V5ZG93bj17aGFuZGxlS2V5ZG93bn0KCQkvPgoJCTxidXR0b24gb25jbGljaz17YWRkVG9kb30+QWRkPC9idXR0b24+Cgk8L2Rpdj4KCgk8cCBjbGFzcz0icmVtYWluaW5nIj57cmVtYWluaW5nfSBpdGVte3JlbWFpbmluZyA9PT0gMSA/ICcnIDogJ3MnfSByZW1haW5pbmc8L3A+CgoJPHVsPgoJCXsjZWFjaCB0b2RvcyBhcyB0b2RvICh0b2RvLmlkKX0KCQkJPGxpPgoJCQkJeyNpZiByb3d9CgkJCQkJe0ByZW5kZXIgcm93KHsgdG9kbywgdG9nZ2xlOiAoKSA9PiB0b2dnbGUodG9kby5pZCkgfSl9CgkJCQl7OmVsc2V9CgkJCQkJPGxhYmVsPgoJCQkJCQk8aW5wdXQKCQkJCQkJCXR5cGU9ImNoZWNrYm94IgoJCQkJCQkJY2hlY2tlZD17dG9kby5kb25lfQoJCQkJCQkJb25jaGFuZ2U9eygpID0+IHRvZ2dsZSh0b2RvLmlkKX0KCQkJCQkJLz4KCQkJCQkJPHNwYW4gY2xhc3M6ZG9uZT17dG9kby5kb25lfT57dG9kby50ZXh0fTwvc3Bhbj4KCQkJCQk8L2xhYmVsPgoJCQkJey9pZn0KCQkJPC9saT4KCQl7L2VhY2h9Cgk8L3VsPgo8L2Rpdj4KCjxzdHlsZT4KCS50b2RvLWxpc3QgewoJCW1heC13aWR0aDogMjhyZW07CgkJZm9udC1mYW1pbHk6IHN5c3RlbS11aSwgc2Fucy1zZXJpZjsKCX0KCgkuaW5wdXQtcm93IHsKCQlkaXNwbGF5OiBmbGV4OwoJCWdhcDogMC41cmVtOwoJfQoKCS5pbnB1dC1yb3cgaW5wdXQgewoJCWZsZXg6IDE7CgkJcGFkZGluZzogMC41cmVtOwoJCWJvcmRlcjogMXB4IHNvbGlkICNjY2M7CgkJYm9yZGVyLXJhZGl1czogNHB4OwoJfQoKCS5pbnB1dC1yb3cgYnV0dG9uIHsKCQlwYWRkaW5nOiAwLjVyZW0gMXJlbTsKCQlib3JkZXI6IG5vbmU7CgkJYm9yZGVyLXJhZGl1czogNHB4OwoJCWJhY2tncm91bmQ6ICM0YTkwZDk7CgkJY29sb3I6IHdoaXRlOwoJCWN1cnNvcjogcG9pbnRlcjsKCX0KCgkucmVtYWluaW5nIHsKCQlmb250LXNpemU6IDAuODc1cmVtOwoJCWNvbG9yOiAjNjY2OwoJCW1hcmdpbjogMC41cmVtIDA7Cgl9CgoJdWwgewoJCWxpc3Qtc3R5bGU6IG5vbmU7CgkJcGFkZGluZzogMDsKCQltYXJnaW46IDA7Cgl9CgoJbGkgewoJCXBhZGRpbmc6IDAuMzc1cmVtIDA7CgkJYm9yZGVyLWJvdHRvbTogMXB4IHNvbGlkICNlZWU7Cgl9CgoJbGFiZWwgewoJCWRpc3BsYXk6IGZsZXg7CgkJYWxpZ24taXRlbXM6IGNlbnRlcjsKCQlnYXA6IDAuNXJlbTsKCQljdXJzb3I6IHBvaW50ZXI7Cgl9CgoJLmRvbmUgewoJCXRleHQtZGVjb3JhdGlvbjogbGluZS10aHJvdWdoOwoJCW9wYWNpdHk6IDAuNTsKCX0KPC9zdHlsZT4K"}], "grading": {"expectations": [{"text": "Uses $state() for the todos array", "passed": true, "evidence": "let todos: Todo[] = $state(initial);"}, {"text": "Uses $derived() or $derived.by() to compute remaining/incomplete count", "passed": true, "evidence": "let remaining = $derived(todos.filter((t) => !t.done).length);"}, {"text": "Defines or accepts a Snippet type (imports from 'svelte')", "passed": true, "evidence": "import type { Snippet } from 'svelte';"}, {"text": "Uses {@render ...} syntax for snippet rendering (not <slot>)", "passed": true, "evidence": "{@render row({ todo, toggle: () => toggle(todo.id) })}"}, {"text": "Uses onclick handler (not on:click Svelte 4 syntax)", "passed": true, "evidence": "onclick={addTodo} and onkeydown={handleKeydown}"}, {"text": "Includes a text input for adding new todos", "passed": true, "evidence": "<input type=\"text\" placeholder=\"Add a todo...\" bind:value={newText} />"}, {"text": "Has a toggle mechanism (checkbox or button) per todo", "passed": true, "evidence": "<input type=\"checkbox\" checked={todo.done} onchange={() => toggle(todo.id)} />"}]}}, {"id": "eval-2-sveltekit-crud-with_skill", "prompt": "I need a SvelteKit page that loads a list of blog posts from a database in +page.server.ts, has form actions for creating and deleting posts, and uses progressive enhancement. Also write a test for the load function.", "eval_id": 2, "outputs": [{"name": "+page.server.ts", "type": "text", "content": "import { fail } from '@sveltejs/kit';\nimport type { Actions, PageServerLoad } from './$types';\n\n// Simulated database \u2014 replace with your real DB client (Prisma, Drizzle, etc.)\nconst db = {\n\tposts: [\n\t\t{ id: '1', title: 'Hello World', content: 'My first blog post', createdAt: new Date('2026-01-15') },\n\t\t{ id: '2', title: 'SvelteKit is great', content: 'Form actions are awesome', createdAt: new Date('2026-02-20') }\n\t],\n\n\tfindMany() {\n\t\treturn [...this.posts].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());\n\t},\n\n\tcreate(data: { title: string; content: string }) {\n\t\tconst post = {\n\t\t\tid: crypto.randomUUID(),\n\t\t\ttitle: data.title,\n\t\t\tcontent: data.content,\n\t\t\tcreatedAt: new Date()\n\t\t};\n\t\tthis.posts.push(post);\n\t\treturn post;\n\t},\n\n\tdelete(id: string) {\n\t\tconst index = this.posts.findIndex((p) => p.id === id);\n\t\tif (index === -1) return false;\n\t\tthis.posts.splice(index, 1);\n\t\treturn true;\n\t}\n};\n\nexport { db };\n\nexport const load: PageServerLoad = async () => {\n\tconst posts = db.findMany();\n\n\treturn {\n\t\tposts: posts.map((p) => ({\n\t\t\tid: p.id,\n\t\t\ttitle: p.title,\n\t\t\tcontent: p.content,\n\t\t\tcreatedAt: p.createdAt.toISOString()\n\t\t}))\n\t};\n};\n\nexport const actions: Actions = {\n\tcreate: async ({ request }) => {\n\t\tconst data = await request.formData();\n\t\tconst title = data.get('title') as string;\n\t\tconst content = data.get('content') as string;\n\n\t\tif (!title?.trim()) {\n\t\t\treturn fail(400, { title, content, error: 'Title is required' });\n\t\t}\n\n\t\tif (!content?.trim()) {\n\t\t\treturn fail(400, { title, content, error: 'Content is required' });\n\t\t}\n\n\t\tdb.create({ title: title.trim(), content: content.trim() });\n\n\t\treturn { success: true };\n\t},\n\n\tdelete: async ({ request }) => {\n\t\tconst data = await request.formData();\n\t\tconst id = data.get('id') as string;\n\n\t\tif (!id) {\n\t\t\treturn fail(400, { error: 'Post ID is required' });\n\t\t}\n\n\t\tconst deleted = db.delete(id);\n\n\t\tif (!deleted) {\n\t\t\treturn fail(404, { error: 'Post not found' });\n\t\t}\n\n\t\treturn { success: true };\n\t}\n};\n"}, {"name": "+page.svelte", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,PHNjcmlwdCBsYW5nPSJ0cyI+CglpbXBvcnQgeyBlbmhhbmNlIH0gZnJvbSAnJGFwcC9mb3Jtcyc7CgoJbGV0IHsgZGF0YSwgZm9ybSB9ID0gJHByb3BzKCk7CglsZXQgY3JlYXRpbmcgPSAkc3RhdGUoZmFsc2UpOwoJbGV0IGRlbGV0aW5nSWQgPSAkc3RhdGU8c3RyaW5nIHwgbnVsbD4obnVsbCk7Cjwvc2NyaXB0PgoKPHN2ZWx0ZTpoZWFkPgoJPHRpdGxlPkJsb2cgUG9zdHM8L3RpdGxlPgo8L3N2ZWx0ZTpoZWFkPgoKPG1haW4+Cgk8aDE+QmxvZyBQb3N0czwvaDE+CgoJPCEtLSBDcmVhdGUgcG9zdCBmb3JtIHdpdGggcHJvZ3Jlc3NpdmUgZW5oYW5jZW1lbnQgLS0+Cgk8c2VjdGlvbiBhcmlhLWxhYmVsbGVkYnk9ImNyZWF0ZS1oZWFkaW5nIj4KCQk8aDIgaWQ9ImNyZWF0ZS1oZWFkaW5nIj5DcmVhdGUgTmV3IFBvc3Q8L2gyPgoKCQl7I2lmIGZvcm0/LmVycm9yfQoJCQk8cCByb2xlPSJhbGVydCIgY2xhc3M9ImVycm9yIj57Zm9ybS5lcnJvcn08L3A+CgkJey9pZn0KCgkJeyNpZiBmb3JtPy5zdWNjZXNzfQoJCQk8cCByb2xlPSJzdGF0dXMiIGNsYXNzPSJzdWNjZXNzIj5Qb3N0IGNyZWF0ZWQgc3VjY2Vzc2Z1bGx5ITwvcD4KCQl7L2lmfQoKCQk8Zm9ybQoJCQltZXRob2Q9IlBPU1QiCgkJCWFjdGlvbj0iPy9jcmVhdGUiCgkJCXVzZTplbmhhbmNlPXsoKSA9PiB7CgkJCQljcmVhdGluZyA9IHRydWU7CgkJCQlyZXR1cm4gYXN5bmMgKHsgdXBkYXRlIH0pID0+IHsKCQkJCQlhd2FpdCB1cGRhdGUoKTsKCQkJCQljcmVhdGluZyA9IGZhbHNlOwoJCQkJfTsKCQkJfX0KCQk+CgkJCTxkaXY+CgkJCQk8bGFiZWwgZm9yPSJ0aXRsZSI+VGl0bGU8L2xhYmVsPgoJCQkJPGlucHV0CgkJCQkJaWQ9InRpdGxlIgoJCQkJCW5hbWU9InRpdGxlIgoJCQkJCXR5cGU9InRleHQiCgkJCQkJcmVxdWlyZWQKCQkJCQl2YWx1ZT17Zm9ybT8udGl0bGUgPz8gJyd9CgkJCQkJYXJpYS1pbnZhbGlkPXtmb3JtPy5lcnJvciAmJiAhZm9ybT8udGl0bGU/LnRyaW0oKSA/ICd0cnVlJyA6IHVuZGVmaW5lZH0KCQkJCS8+CgkJCTwvZGl2PgoKCQkJPGRpdj4KCQkJCTxsYWJlbCBmb3I9ImNvbnRlbnQiPkNvbnRlbnQ8L2xhYmVsPgoJCQkJPHRleHRhcmVhCgkJCQkJaWQ9ImNvbnRlbnQiCgkJCQkJbmFtZT0iY29udGVudCIKCQkJCQlyZXF1aXJlZAoJCQkJCXJvd3M9IjQiCgkJCQkJYXJpYS1pbnZhbGlkPXtmb3JtPy5lcnJvciAmJiAhZm9ybT8uY29udGVudD8udHJpbSgpID8gJ3RydWUnIDogdW5kZWZpbmVkfQoJCQkJPntmb3JtPy5jb250ZW50ID8/ICcnfTwvdGV4dGFyZWE+CgkJCTwvZGl2PgoKCQkJPGJ1dHRvbiB0eXBlPSJzdWJtaXQiIGRpc2FibGVkPXtjcmVhdGluZ30+CgkJCQl7Y3JlYXRpbmcgPyAnQ3JlYXRpbmcuLi4nIDogJ0NyZWF0ZSBQb3N0J30KCQkJPC9idXR0b24+CgkJPC9mb3JtPgoJPC9zZWN0aW9uPgoKCTwhLS0gUG9zdCBsaXN0IC0tPgoJPHNlY3Rpb24gYXJpYS1sYWJlbGxlZGJ5PSJwb3N0cy1oZWFkaW5nIj4KCQk8aDIgaWQ9InBvc3RzLWhlYWRpbmciPkFsbCBQb3N0czwvaDI+CgoJCXsjaWYgZGF0YS5wb3N0cy5sZW5ndGggPT09IDB9CgkJCTxwPk5vIHBvc3RzIHlldC4gQ3JlYXRlIHlvdXIgZmlyc3Qgb25lIGFib3ZlITwvcD4KCQl7OmVsc2V9CgkJCTx1bCByb2xlPSJsaXN0Ij4KCQkJCXsjZWFjaCBkYXRhLnBvc3RzIGFzIHBvc3QgKHBvc3QuaWQpfQoJCQkJCTxsaT4KCQkJCQkJPGFydGljbGU+CgkJCQkJCQk8aDM+e3Bvc3QudGl0bGV9PC9oMz4KCQkJCQkJCTxwPntwb3N0LmNvbnRlbnR9PC9wPgoJCQkJCQkJPHRpbWUgZGF0ZXRpbWU9e3Bvc3QuY3JlYXRlZEF0fT4KCQkJCQkJCQl7bmV3IERhdGUocG9zdC5jcmVhdGVkQXQpLnRvTG9jYWxlRGF0ZVN0cmluZygpfQoJCQkJCQkJPC90aW1lPgoKCQkJCQkJCTxmb3JtCgkJCQkJCQkJbWV0aG9kPSJQT1NUIgoJCQkJCQkJCWFjdGlvbj0iPy9kZWxldGUiCgkJCQkJCQkJdXNlOmVuaGFuY2U9eygpID0+IHsKCQkJCQkJCQkJZGVsZXRpbmdJZCA9IHBvc3QuaWQ7CgkJCQkJCQkJCXJldHVybiBhc3luYyAoeyB1cGRhdGUgfSkgPT4gewoJCQkJCQkJCQkJYXdhaXQgdXBkYXRlKCk7CgkJCQkJCQkJCQlkZWxldGluZ0lkID0gbnVsbDsKCQkJCQkJCQkJfTsKCQkJCQkJCQl9fQoJCQkJCQkJPgoJCQkJCQkJCTxpbnB1dCB0eXBlPSJoaWRkZW4iIG5hbWU9ImlkIiB2YWx1ZT17cG9zdC5pZH0gLz4KCQkJCQkJCQk8YnV0dG9uIHR5cGU9InN1Ym1pdCIgZGlzYWJsZWQ9e2RlbGV0aW5nSWQgPT09IHBvc3QuaWR9IGFyaWEtbGFiZWw9IkRlbGV0ZSB7cG9zdC50aXRsZX0iPgoJCQkJCQkJCQl7ZGVsZXRpbmdJZCA9PT0gcG9zdC5pZCA/ICdEZWxldGluZy4uLicgOiAnRGVsZXRlJ30KCQkJCQkJCQk8L2J1dHRvbj4KCQkJCQkJCTwvZm9ybT4KCQkJCQkJPC9hcnRpY2xlPgoJCQkJCTwvbGk+CgkJCQl7L2VhY2h9CgkJCTwvdWw+CgkJey9pZn0KCTwvc2VjdGlvbj4KPC9tYWluPgo="}, {"name": "page.server.test.ts", "type": "text", "content": "import { describe, expect, it, beforeEach } from 'vitest';\nimport { load, actions, db } from './+page.server';\n\n// Helper to create a mock Request with FormData\nfunction createFormRequest(data: Record<string, string>): Request {\n\tconst formData = new FormData();\n\tfor (const [key, value] of Object.entries(data)) {\n\t\tformData.append(key, value);\n\t}\n\treturn new Request('http://localhost', { method: 'POST', body: formData });\n}\n\ndescribe('Blog posts load function', () => {\n\tbeforeEach(() => {\n\t\t// Reset DB to known state\n\t\tdb.posts = [\n\t\t\t{ id: '1', title: 'First Post', content: 'First content', createdAt: new Date('2026-01-01') },\n\t\t\t{ id: '2', title: 'Second Post', content: 'Second content', createdAt: new Date('2026-02-01') }\n\t\t];\n\t});\n\n\tit('returns posts sorted by date descending', async () => {\n\t\tconst result = await load({} as any);\n\n\t\texpect(result.posts).toHaveLength(2);\n\t\texpect(result.posts[0].title).toBe('Second Post');\n\t\texpect(result.posts[1].title).toBe('First Post');\n\t});\n\n\tit('returns posts with serialized date strings', async () => {\n\t\tconst result = await load({} as any);\n\n\t\tfor (const post of result.posts) {\n\t\t\texpect(typeof post.createdAt).toBe('string');\n\t\t\texpect(() => new Date(post.createdAt)).not.toThrow();\n\t\t}\n\t});\n\n\tit('returns only safe fields (id, title, content, createdAt)', async () => {\n\t\tconst result = await load({} as any);\n\t\tconst post = result.posts[0];\n\n\t\texpect(Object.keys(post).sort()).toEqual(['content', 'createdAt', 'id', 'title']);\n\t});\n\n\tit('returns empty array when no posts exist', async () => {\n\t\tdb.posts = [];\n\t\tconst result = await load({} as any);\n\n\t\texpect(result.posts).toEqual([]);\n\t});\n});\n\ndescribe('Blog posts create action', () => {\n\tbeforeEach(() => {\n\t\tdb.posts = [];\n\t});\n\n\tit('creates a post with valid data', async () => {\n\t\tconst request = createFormRequest({ title: 'New Post', content: 'Some content' });\n\t\tconst result = await actions.create({ request } as any);\n\n\t\texpect(result).toEqual({ success: true });\n\t\texpect(db.posts).toHaveLength(1);\n\t\texpect(db.posts[0].title).toBe('New Post');\n\t\texpect(db.posts[0].content).toBe('Some content');\n\t});\n\n\tit('trims whitespace from title and content', async () => {\n\t\tconst request = createFormRequest({ title: '  Trimmed  ', content: '  Clean  ' });\n\t\tawait actions.create({ request } as any);\n\n\t\texpect(db.posts[0].title).toBe('Trimmed');\n\t\texpect(db.posts[0].content).toBe('Clean');\n\t});\n\n\tit('fails with 400 when title is missing', async () => {\n\t\tconst request = createFormRequest({ title: '', content: 'Some content' });\n\t\tconst result = await actions.create({ request } as any);\n\n\t\texpect(result?.status).toBe(400);\n\t\texpect(result?.data?.error).toBe('Title is required');\n\t\texpect(db.posts).toHaveLength(0);\n\t});\n\n\tit('fails with 400 when content is missing', async () => {\n\t\tconst request = createFormRequest({ title: 'Title', content: '' });\n\t\tconst result = await actions.create({ request } as any);\n\n\t\texpect(result?.status).toBe(400);\n\t\texpect(result?.data?.error).toBe('Content is required');\n\t\texpect(db.posts).toHaveLength(0);\n\t});\n\n\tit('fails with 400 when title is only whitespace', async () => {\n\t\tconst request = createFormRequest({ title: '   ', content: 'Content' });\n\t\tconst result = await actions.create({ request } as any);\n\n\t\texpect(result?.status).toBe(400);\n\t\texpect(result?.data?.error).toBe('Title is required');\n\t});\n});\n\ndescribe('Blog posts delete action', () => {\n\tbeforeEach(() => {\n\t\tdb.posts = [\n\t\t\t{ id: 'abc', title: 'To Delete', content: 'Will be removed', createdAt: new Date() }\n\t\t];\n\t});\n\n\tit('deletes an existing post', async () => {\n\t\tconst request = createFormRequest({ id: 'abc' });\n\t\tconst result = await actions.delete({ request } as any);\n\n\t\texpect(result).toEqual({ success: true });\n\t\texpect(db.posts).toHaveLength(0);\n\t});\n\n\tit('fails with 400 when id is missing', async () => {\n\t\tconst request = createFormRequest({});\n\t\tconst result = await actions.delete({ request } as any);\n\n\t\texpect(result?.status).toBe(400);\n\t\texpect(result?.data?.error).toBe('Post ID is required');\n\t});\n\n\tit('fails with 404 when post does not exist', async () => {\n\t\tconst request = createFormRequest({ id: 'nonexistent' });\n\t\tconst result = await actions.delete({ request } as any);\n\n\t\texpect(result?.status).toBe(404);\n\t\texpect(result?.data?.error).toBe('Post not found');\n\t});\n});\n"}], "grading": {"expectations": [{"text": "Has a +page.server.ts with a typed load function (PageServerLoad)", "passed": true, "evidence": "export const load: PageServerLoad = async () => {"}, {"text": "Has named form actions (e.g. create, delete) in the actions export", "passed": true, "evidence": "export const actions: Actions = { create: async ({ request }) => { ... }, delete: async ({ request }) => { ... } };"}, {"text": "Uses fail() from @sveltejs/kit for validation errors", "passed": true, "evidence": "import { fail } from '@sveltejs/kit'; and return fail(400, { ... })"}, {"text": "Has a +page.svelte that uses use:enhance for progressive enhancement", "passed": true, "evidence": "import { enhance } from '$app/forms'; and use:enhance={() => {"}, {"text": "Uses Svelte 5 syntax ($props, onclick) not Svelte 4 (export let, on:click)", "passed": true, "evidence": "let { data, form } = $props(); and no on:click directives found"}, {"text": "Test file imports from vitest and tests the load function", "passed": true, "evidence": "import { describe, expect, it, beforeEach } from 'vitest'; and describe('Blog posts load function', ...)"}, {"text": "Test file uses .test.ts extension (not .svelte.test.ts) for server-side code", "passed": true, "evidence": "File is named page.server.test.ts (not page.server.svelte.test.ts)"}]}}, {"id": "eval-2-sveltekit-crud-without_skill", "prompt": "I need a SvelteKit page that loads a list of blog posts from a database in +page.server.ts, has form actions for creating and deleting posts, and uses progressive enhancement. Also write a test for the load function.", "eval_id": 2, "outputs": [{"name": "+page.server.ts", "type": "text", "content": "import type { Actions, PageServerLoad } from './$types';\nimport { fail } from '@sveltejs/kit';\nimport { db } from '$lib/server/db';\n\nexport const load: PageServerLoad = async () => {\n\tconst posts = await db.post.findMany({\n\t\torderBy: { createdAt: 'desc' }\n\t});\n\n\treturn { posts };\n};\n\nexport const actions: Actions = {\n\tcreate: async ({ request }) => {\n\t\tconst formData = await request.formData();\n\t\tconst title = formData.get('title');\n\t\tconst content = formData.get('content');\n\n\t\tif (!title || typeof title !== 'string' || title.trim().length === 0) {\n\t\t\treturn fail(400, { error: 'Title is required', title, content });\n\t\t}\n\n\t\tif (!content || typeof content !== 'string' || content.trim().length === 0) {\n\t\t\treturn fail(400, { error: 'Content is required', title, content });\n\t\t}\n\n\t\tawait db.post.create({\n\t\t\tdata: {\n\t\t\t\ttitle: title.trim(),\n\t\t\t\tcontent: content.trim()\n\t\t\t}\n\t\t});\n\n\t\treturn { success: true };\n\t},\n\n\tdelete: async ({ request }) => {\n\t\tconst formData = await request.formData();\n\t\tconst id = formData.get('id');\n\n\t\tif (!id || typeof id !== 'string') {\n\t\t\treturn fail(400, { error: 'Post ID is required' });\n\t\t}\n\n\t\ttry {\n\t\t\tawait db.post.delete({ where: { id } });\n\t\t} catch {\n\t\t\treturn fail(404, { error: 'Post not found' });\n\t\t}\n\n\t\treturn { success: true };\n\t}\n};\n"}, {"name": "+page.svelte", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,PHNjcmlwdCBsYW5nPSJ0cyI+CglpbXBvcnQgeyBlbmhhbmNlIH0gZnJvbSAnJGFwcC9mb3Jtcyc7CgoJbGV0IHsgZGF0YSwgZm9ybSB9ID0gJHByb3BzKCk7Cjwvc2NyaXB0PgoKPHN2ZWx0ZTpoZWFkPgoJPHRpdGxlPkJsb2cgUG9zdHM8L3RpdGxlPgo8L3N2ZWx0ZTpoZWFkPgoKPG1haW4+Cgk8aDE+QmxvZyBQb3N0czwvaDE+CgoJPHNlY3Rpb24+CgkJPGgyPkNyZWF0ZSBhIG5ldyBwb3N0PC9oMj4KCgkJeyNpZiBmb3JtPy5lcnJvcn0KCQkJPHAgY2xhc3M9ImVycm9yIiByb2xlPSJhbGVydCI+e2Zvcm0uZXJyb3J9PC9wPgoJCXsvaWZ9CgoJCXsjaWYgZm9ybT8uc3VjY2Vzc30KCQkJPHAgY2xhc3M9InN1Y2Nlc3MiIHJvbGU9InN0YXR1cyI+UG9zdCBjcmVhdGVkIHN1Y2Nlc3NmdWxseSE8L3A+CgkJey9pZn0KCgkJPGZvcm0gbWV0aG9kPSJQT1NUIiBhY3Rpb249Ij8vY3JlYXRlIiB1c2U6ZW5oYW5jZT4KCQkJPGRpdj4KCQkJCTxsYWJlbCBmb3I9InRpdGxlIj5UaXRsZTwvbGFiZWw+CgkJCQk8aW5wdXQKCQkJCQlpZD0idGl0bGUiCgkJCQkJbmFtZT0idGl0bGUiCgkJCQkJdHlwZT0idGV4dCIKCQkJCQlyZXF1aXJlZAoJCQkJCXZhbHVlPXtmb3JtPy50aXRsZSA/PyAnJ30KCQkJCS8+CgkJCTwvZGl2PgoKCQkJPGRpdj4KCQkJCTxsYWJlbCBmb3I9ImNvbnRlbnQiPkNvbnRlbnQ8L2xhYmVsPgoJCQkJPHRleHRhcmVhCgkJCQkJaWQ9ImNvbnRlbnQiCgkJCQkJbmFtZT0iY29udGVudCIKCQkJCQlyZXF1aXJlZAoJCQkJCXJvd3M9IjQiCgkJCQk+e2Zvcm0/LmNvbnRlbnQgPz8gJyd9PC90ZXh0YXJlYT4KCQkJPC9kaXY+CgoJCQk8YnV0dG9uIHR5cGU9InN1Ym1pdCI+Q3JlYXRlIFBvc3Q8L2J1dHRvbj4KCQk8L2Zvcm0+Cgk8L3NlY3Rpb24+CgoJPHNlY3Rpb24+CgkJPGgyPkFsbCBQb3N0czwvaDI+CgoJCXsjaWYgZGF0YS5wb3N0cy5sZW5ndGggPT09IDB9CgkJCTxwPk5vIHBvc3RzIHlldC4gQ3JlYXRlIHlvdXIgZmlyc3QgcG9zdCBhYm92ZSE8L3A+CgkJezplbHNlfQoJCQk8dWwgY2xhc3M9InBvc3RzIj4KCQkJCXsjZWFjaCBkYXRhLnBvc3RzIGFzIHBvc3QgKHBvc3QuaWQpfQoJCQkJCTxsaSBjbGFzcz0icG9zdCI+CgkJCQkJCTxhcnRpY2xlPgoJCQkJCQkJPGgzPntwb3N0LnRpdGxlfTwvaDM+CgkJCQkJCQk8cD57cG9zdC5jb250ZW50fTwvcD4KCQkJCQkJCTx0aW1lIGRhdGV0aW1lPXtwb3N0LmNyZWF0ZWRBdC50b0lTT1N0cmluZz8uKCkgPz8gcG9zdC5jcmVhdGVkQXR9PgoJCQkJCQkJCXtuZXcgRGF0ZShwb3N0LmNyZWF0ZWRBdCkudG9Mb2NhbGVEYXRlU3RyaW5nKCl9CgkJCQkJCQk8L3RpbWU+CgoJCQkJCQkJPGZvcm0gbWV0aG9kPSJQT1NUIiBhY3Rpb249Ij8vZGVsZXRlIiB1c2U6ZW5oYW5jZT4KCQkJCQkJCQk8aW5wdXQgdHlwZT0iaGlkZGVuIiBuYW1lPSJpZCIgdmFsdWU9e3Bvc3QuaWR9IC8+CgkJCQkJCQkJPGJ1dHRvbiB0eXBlPSJzdWJtaXQiPkRlbGV0ZTwvYnV0dG9uPgoJCQkJCQkJPC9mb3JtPgoJCQkJCQk8L2FydGljbGU+CgkJCQkJPC9saT4KCQkJCXsvZWFjaH0KCQkJPC91bD4KCQl7L2lmfQoJPC9zZWN0aW9uPgo8L21haW4+Cgo8c3R5bGU+CgltYWluIHsKCQltYXgtd2lkdGg6IDQ4cmVtOwoJCW1hcmdpbjogMCBhdXRvOwoJCXBhZGRpbmc6IDJyZW07Cgl9CgoJLmVycm9yIHsKCQljb2xvcjogcmVkOwoJfQoKCS5zdWNjZXNzIHsKCQljb2xvcjogZ3JlZW47Cgl9CgoJLnBvc3RzIHsKCQlsaXN0LXN0eWxlOiBub25lOwoJCXBhZGRpbmc6IDA7Cgl9CgoJLnBvc3QgewoJCWJvcmRlcjogMXB4IHNvbGlkICNkZGQ7CgkJYm9yZGVyLXJhZGl1czogMC41cmVtOwoJCXBhZGRpbmc6IDFyZW07CgkJbWFyZ2luLWJvdHRvbTogMXJlbTsKCX0KCgkucG9zdCBoMyB7CgkJbWFyZ2luLXRvcDogMDsKCX0KCglmb3JtIGRpdiB7CgkJbWFyZ2luLWJvdHRvbTogMXJlbTsKCX0KCglsYWJlbCB7CgkJZGlzcGxheTogYmxvY2s7CgkJZm9udC13ZWlnaHQ6IDYwMDsKCQltYXJnaW4tYm90dG9tOiAwLjI1cmVtOwoJfQoKCWlucHV0LAoJdGV4dGFyZWEgewoJCXdpZHRoOiAxMDAlOwoJCXBhZGRpbmc6IDAuNXJlbTsKCQlib3JkZXI6IDFweCBzb2xpZCAjY2NjOwoJCWJvcmRlci1yYWRpdXM6IDAuMjVyZW07Cgl9CgoJYnV0dG9uIHsKCQlwYWRkaW5nOiAwLjVyZW0gMXJlbTsKCQlib3JkZXI6IG5vbmU7CgkJYm9yZGVyLXJhZGl1czogMC4yNXJlbTsKCQljdXJzb3I6IHBvaW50ZXI7CgkJYmFja2dyb3VuZDogIzMzMzsKCQljb2xvcjogd2hpdGU7Cgl9CgoJYnV0dG9uOmhvdmVyIHsKCQliYWNrZ3JvdW5kOiAjNTU1OwoJfQo8L3N0eWxlPgo="}, {"name": "page.server.test.ts", "type": "text", "content": "import { describe, it, expect, vi, beforeEach } from 'vitest';\nimport { load } from './+page.server';\n\nconst mockPosts = [\n\t{\n\t\tid: '1',\n\t\ttitle: 'First Post',\n\t\tcontent: 'Hello world',\n\t\tcreatedAt: new Date('2025-01-15')\n\t},\n\t{\n\t\tid: '2',\n\t\ttitle: 'Second Post',\n\t\tcontent: 'Another post',\n\t\tcreatedAt: new Date('2025-01-10')\n\t}\n];\n\nvi.mock('$lib/server/db', () => ({\n\tdb: {\n\t\tpost: {\n\t\t\tfindMany: vi.fn(),\n\t\t\tcreate: vi.fn(),\n\t\t\tdelete: vi.fn()\n\t\t}\n\t}\n}));\n\nimport { db } from '$lib/server/db';\n\ndescribe('Blog posts load function', () => {\n\tbeforeEach(() => {\n\t\tvi.clearAllMocks();\n\t});\n\n\tit('returns posts from the database', async () => {\n\t\tvi.mocked(db.post.findMany).mockResolvedValue(mockPosts);\n\n\t\tconst result = await load({} as any);\n\n\t\texpect(result).toEqual({ posts: mockPosts });\n\t\texpect(db.post.findMany).toHaveBeenCalledWith({\n\t\t\torderBy: { createdAt: 'desc' }\n\t\t});\n\t});\n\n\tit('returns an empty array when there are no posts', async () => {\n\t\tvi.mocked(db.post.findMany).mockResolvedValue([]);\n\n\t\tconst result = await load({} as any);\n\n\t\texpect(result).toEqual({ posts: [] });\n\t});\n\n\tit('orders posts by createdAt descending', async () => {\n\t\tvi.mocked(db.post.findMany).mockResolvedValue(mockPosts);\n\n\t\tawait load({} as any);\n\n\t\texpect(db.post.findMany).toHaveBeenCalledWith({\n\t\t\torderBy: { createdAt: 'desc' }\n\t\t});\n\t});\n});\n"}], "grading": {"expectations": [{"text": "Has a +page.server.ts with a typed load function (PageServerLoad)", "passed": true, "evidence": "export const load: PageServerLoad = async () => {"}, {"text": "Has named form actions (e.g. create, delete) in the actions export", "passed": true, "evidence": "export const actions: Actions = { create: async ({ request }) => { ... }, delete: async ({ request }) => { ... } };"}, {"text": "Uses fail() from @sveltejs/kit for validation errors", "passed": true, "evidence": "import { fail } from '@sveltejs/kit'; and return fail(400, { ... })"}, {"text": "Has a +page.svelte that uses use:enhance for progressive enhancement", "passed": true, "evidence": "import { enhance } from '$app/forms'; and use:enhance on both forms"}, {"text": "Uses Svelte 5 syntax ($props, onclick) not Svelte 4 (export let, on:click)", "passed": true, "evidence": "let { data, form } = $props(); and no on:click directives found"}, {"text": "Test file imports from vitest and tests the load function", "passed": true, "evidence": "import { describe, it, expect, vi, beforeEach } from 'vitest'; and describe('Blog posts load function', ...)"}, {"text": "Test file uses .test.ts extension (not .svelte.test.ts) for server-side code", "passed": true, "evidence": "File is named page.server.test.ts (not page.server.svelte.test.ts)"}]}}, {"id": "eval-3-accessible-search-with_skill", "prompt": "Create an accessible search component that uses SvelteKit remote functions to query the server. It should debounce input, show loading state with aria-busy, announce results to screen readers with a live region, and support keyboard navigation through results.", "eval_id": 3, "outputs": [{"name": "Search.svelte", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,PHNjcmlwdCBsYW5nPSJ0cyI+CglpbXBvcnQgeyBzZWFyY2gsIHR5cGUgU2VhcmNoUmVzdWx0IH0gZnJvbSAnLi9zZWFyY2gucmVtb3RlJzsKCglsZXQgaW5wdXRWYWx1ZSA9ICRzdGF0ZSgnJyk7CglsZXQgcmVzdWx0cyA9ICRzdGF0ZTxTZWFyY2hSZXN1bHRbXT4oW10pOwoJbGV0IGxvYWRpbmcgPSAkc3RhdGUoZmFsc2UpOwoJbGV0IGFjdGl2ZUluZGV4ID0gJHN0YXRlKC0xKTsKCWxldCBvcGVuID0gJHN0YXRlKGZhbHNlKTsKCWxldCBhbm5vdW5jZW1lbnQgPSAkc3RhdGUoJycpOwoJbGV0IGlucHV0UmVmID0gJHN0YXRlPEhUTUxJbnB1dEVsZW1lbnQ+KCk7CglsZXQgbGlzdFJlZiA9ICRzdGF0ZTxIVE1MVUxpc3RFbGVtZW50PigpOwoKCS8vIERlYm91bmNlZCBzZWFyY2ggdmlhICRlZmZlY3Qgd2l0aCBjbGVhbnVwCgkkZWZmZWN0KCgpID0+IHsKCQljb25zdCB0ZXJtID0gaW5wdXRWYWx1ZTsKCgkJaWYgKHRlcm0udHJpbSgpLmxlbmd0aCA8IDIpIHsKCQkJcmVzdWx0cyA9IFtdOwoJCQlvcGVuID0gZmFsc2U7CgkJCWFubm91bmNlbWVudCA9ICcnOwoJCQlyZXR1cm47CgkJfQoKCQlsb2FkaW5nID0gdHJ1ZTsKCQljb25zdCB0aW1lb3V0ID0gc2V0VGltZW91dChhc3luYyAoKSA9PiB7CgkJCXRyeSB7CgkJCQlyZXN1bHRzID0gYXdhaXQgc2VhcmNoKHRlcm0pOwoJCQkJb3BlbiA9IHJlc3VsdHMubGVuZ3RoID4gMDsKCQkJCWFjdGl2ZUluZGV4ID0gLTE7CgoJCQkJaWYgKHJlc3VsdHMubGVuZ3RoID09PSAwKSB7CgkJCQkJYW5ub3VuY2VtZW50ID0gYE5vIHJlc3VsdHMgZm91bmQgZm9yICIke3Rlcm19Ii5gOwoJCQkJfSBlbHNlIHsKCQkJCQlhbm5vdW5jZW1lbnQgPSBgJHtyZXN1bHRzLmxlbmd0aH0gcmVzdWx0JHtyZXN1bHRzLmxlbmd0aCA9PT0gMSA/ICcnIDogJ3MnfSBmb3VuZC4gVXNlIGFycm93IGtleXMgdG8gbmF2aWdhdGUuYDsKCQkJCX0KCQkJfSBjYXRjaCB7CgkJCQlyZXN1bHRzID0gW107CgkJCQlvcGVuID0gZmFsc2U7CgkJCQlhbm5vdW5jZW1lbnQgPSAnU2VhcmNoIGZhaWxlZC4gUGxlYXNlIHRyeSBhZ2Fpbi4nOwoJCQl9IGZpbmFsbHkgewoJCQkJbG9hZGluZyA9IGZhbHNlOwoJCQl9CgkJfSwgMzAwKTsKCgkJcmV0dXJuICgpID0+IHsKCQkJY2xlYXJUaW1lb3V0KHRpbWVvdXQpOwoJCX07Cgl9KTsKCglmdW5jdGlvbiBoYW5kbGVLZXlkb3duKGU6IEtleWJvYXJkRXZlbnQpIHsKCQlpZiAoIW9wZW4gJiYgcmVzdWx0cy5sZW5ndGggPT09IDApIHJldHVybjsKCgkJc3dpdGNoIChlLmtleSkgewoJCQljYXNlICdBcnJvd0Rvd24nOgoJCQkJZS5wcmV2ZW50RGVmYXVsdCgpOwoJCQkJaWYgKCFvcGVuICYmIHJlc3VsdHMubGVuZ3RoID4gMCkgewoJCQkJCW9wZW4gPSB0cnVlOwoJCQkJCWFjdGl2ZUluZGV4ID0gMDsKCQkJCX0gZWxzZSB7CgkJCQkJYWN0aXZlSW5kZXggPSAoYWN0aXZlSW5kZXggKyAxKSAlIHJlc3VsdHMubGVuZ3RoOwoJCQkJfQoJCQkJc2Nyb2xsQWN0aXZlSW50b1ZpZXcoKTsKCQkJCWJyZWFrOwoKCQkJY2FzZSAnQXJyb3dVcCc6CgkJCQllLnByZXZlbnREZWZhdWx0KCk7CgkJCQlpZiAoYWN0aXZlSW5kZXggPD0gMCkgewoJCQkJCWFjdGl2ZUluZGV4ID0gcmVzdWx0cy5sZW5ndGggLSAxOwoJCQkJfSBlbHNlIHsKCQkJCQlhY3RpdmVJbmRleC0tOwoJCQkJfQoJCQkJc2Nyb2xsQWN0aXZlSW50b1ZpZXcoKTsKCQkJCWJyZWFrOwoKCQkJY2FzZSAnSG9tZSc6CgkJCQlpZiAob3BlbikgewoJCQkJCWUucHJldmVudERlZmF1bHQoKTsKCQkJCQlhY3RpdmVJbmRleCA9IDA7CgkJCQkJc2Nyb2xsQWN0aXZlSW50b1ZpZXcoKTsKCQkJCX0KCQkJCWJyZWFrOwoKCQkJY2FzZSAnRW5kJzoKCQkJCWlmIChvcGVuKSB7CgkJCQkJZS5wcmV2ZW50RGVmYXVsdCgpOwoJCQkJCWFjdGl2ZUluZGV4ID0gcmVzdWx0cy5sZW5ndGggLSAxOwoJCQkJCXNjcm9sbEFjdGl2ZUludG9WaWV3KCk7CgkJCQl9CgkJCQlicmVhazsKCgkJCWNhc2UgJ0VudGVyJzoKCQkJCWlmIChhY3RpdmVJbmRleCA+PSAwICYmIHJlc3VsdHNbYWN0aXZlSW5kZXhdKSB7CgkJCQkJZS5wcmV2ZW50RGVmYXVsdCgpOwoJCQkJCXNlbGVjdFJlc3VsdChyZXN1bHRzW2FjdGl2ZUluZGV4XSk7CgkJCQl9CgkJCQlicmVhazsKCgkJCWNhc2UgJ0VzY2FwZSc6CgkJCQllLnByZXZlbnREZWZhdWx0KCk7CgkJCQljbG9zZSgpOwoJCQkJYnJlYWs7CgkJfQoJfQoKCWZ1bmN0aW9uIHNjcm9sbEFjdGl2ZUludG9WaWV3KCkgewoJCS8vIFdhaXQgZm9yIERPTSB1cGRhdGUsIHRoZW4gc2Nyb2xsCgkJcmVxdWVzdEFuaW1hdGlvbkZyYW1lKCgpID0+IHsKCQkJY29uc3QgYWN0aXZlID0gbGlzdFJlZj8ucXVlcnlTZWxlY3RvcignW2FyaWEtc2VsZWN0ZWQ9InRydWUiXScpOwoJCQlhY3RpdmU/LnNjcm9sbEludG9WaWV3KHsgYmxvY2s6ICduZWFyZXN0JyB9KTsKCQl9KTsKCX0KCglmdW5jdGlvbiBzZWxlY3RSZXN1bHQocmVzdWx0OiBTZWFyY2hSZXN1bHQpIHsKCQlpbnB1dFZhbHVlID0gcmVzdWx0LnRpdGxlOwoJCWNsb3NlKCk7CgkJYW5ub3VuY2VtZW50ID0gYFNlbGVjdGVkOiAke3Jlc3VsdC50aXRsZX1gOwoJCXdpbmRvdy5sb2NhdGlvbi5ocmVmID0gcmVzdWx0LnVybDsKCX0KCglmdW5jdGlvbiBjbG9zZSgpIHsKCQlvcGVuID0gZmFsc2U7CgkJYWN0aXZlSW5kZXggPSAtMTsKCQlpbnB1dFJlZj8uZm9jdXMoKTsKCX0KCglmdW5jdGlvbiBoYW5kbGVCbHVyKGU6IEZvY3VzRXZlbnQpIHsKCQkvLyBDbG9zZSB0aGUgbGlzdGJveCB3aGVuIGZvY3VzIGxlYXZlcyB0aGUgc2VhcmNoIGNvbXBvbmVudCBlbnRpcmVseQoJCWNvbnN0IHJlbGF0ZWQgPSBlLnJlbGF0ZWRUYXJnZXQgYXMgSFRNTEVsZW1lbnQgfCBudWxsOwoJCWlmIChyZWxhdGVkICYmIGxpc3RSZWY/LmNvbnRhaW5zKHJlbGF0ZWQpKSByZXR1cm47CgkJLy8gU21hbGwgZGVsYXkgc28gY2xpY2sgb24gcmVzdWx0IHJlZ2lzdGVycyBiZWZvcmUgY2xvc2UKCQlzZXRUaW1lb3V0KCgpID0+IHsKCQkJb3BlbiA9IGZhbHNlOwoJCQlhY3RpdmVJbmRleCA9IC0xOwoJCX0sIDE1MCk7Cgl9Cjwvc2NyaXB0PgoKPGRpdiBjbGFzcz0ic2VhcmNoLWNvbnRhaW5lciI+Cgk8bGFiZWwgZm9yPSJzZWFyY2gtaW5wdXQiIGNsYXNzPSJzci1vbmx5Ij5TZWFyY2g8L2xhYmVsPgoJPGRpdiBjbGFzcz0ic2VhcmNoLWlucHV0LXdyYXBwZXIiPgoJCTxpbnB1dAoJCQliaW5kOnRoaXM9e2lucHV0UmVmfQoJCQlpZD0ic2VhcmNoLWlucHV0IgoJCQl0eXBlPSJzZWFyY2giCgkJCXJvbGU9ImNvbWJvYm94IgoJCQlhdXRvY29tcGxldGU9Im9mZiIKCQkJYXJpYS1leHBhbmRlZD17b3Blbn0KCQkJYXJpYS1jb250cm9scz0ic2VhcmNoLWxpc3Rib3giCgkJCWFyaWEtYWN0aXZlZGVzY2VuZGFudD17YWN0aXZlSW5kZXggPj0gMCA/IGBzZWFyY2gtcmVzdWx0LSR7YWN0aXZlSW5kZXh9YCA6IHVuZGVmaW5lZH0KCQkJYXJpYS1hdXRvY29tcGxldGU9Imxpc3QiCgkJCWFyaWEtYnVzeT17bG9hZGluZ30KCQkJcGxhY2Vob2xkZXI9IlNlYXJjaC4uLiIKCQkJYmluZDp2YWx1ZT17aW5wdXRWYWx1ZX0KCQkJb25rZXlkb3duPXtoYW5kbGVLZXlkb3dufQoJCQlvbmJsdXI9e2hhbmRsZUJsdXJ9CgkJLz4KCQl7I2lmIGxvYWRpbmd9CgkJCTxzcGFuIGNsYXNzPSJzZWFyY2gtc3Bpbm5lciIgYXJpYS1oaWRkZW49InRydWUiPjwvc3Bhbj4KCQl7L2lmfQoJPC9kaXY+CgoJPHVsCgkJYmluZDp0aGlzPXtsaXN0UmVmfQoJCWlkPSJzZWFyY2gtbGlzdGJveCIKCQlyb2xlPSJsaXN0Ym94IgoJCWFyaWEtbGFiZWw9IlNlYXJjaCByZXN1bHRzIgoJCWhpZGRlbj17IW9wZW59Cgk+CgkJeyNlYWNoIHJlc3VsdHMgYXMgcmVzdWx0LCBpIChyZXN1bHQuaWQpfQoJCQk8bGkKCQkJCWlkPSJzZWFyY2gtcmVzdWx0LXtpfSIKCQkJCXJvbGU9Im9wdGlvbiIKCQkJCWFyaWEtc2VsZWN0ZWQ9e2FjdGl2ZUluZGV4ID09PSBpfQoJCQkJb25jbGljaz17KCkgPT4gc2VsZWN0UmVzdWx0KHJlc3VsdCl9CgkJCQlvbm1vdXNlZW50ZXI9eygpID0+IChhY3RpdmVJbmRleCA9IGkpfQoJCQk+CgkJCQk8c3BhbiBjbGFzcz0icmVzdWx0LXRpdGxlIj57cmVzdWx0LnRpdGxlfTwvc3Bhbj4KCQkJCTxzcGFuIGNsYXNzPSJyZXN1bHQtZGVzY3JpcHRpb24iPntyZXN1bHQuZGVzY3JpcHRpb259PC9zcGFuPgoJCQk8L2xpPgoJCXsvZWFjaH0KCTwvdWw+CgoJPCEtLSBMaXZlIHJlZ2lvbiBmb3Igc2NyZWVuIHJlYWRlciBhbm5vdW5jZW1lbnRzIC0tPgoJPGRpdiBhcmlhLWxpdmU9InBvbGl0ZSIgYXJpYS1hdG9taWM9InRydWUiIGNsYXNzPSJzci1vbmx5Ij4KCQl7YW5ub3VuY2VtZW50fQoJPC9kaXY+CjwvZGl2PgoKPHN0eWxlPgoJLnNyLW9ubHkgewoJCXBvc2l0aW9uOiBhYnNvbHV0ZTsKCQl3aWR0aDogMXB4OwoJCWhlaWdodDogMXB4OwoJCXBhZGRpbmc6IDA7CgkJbWFyZ2luOiAtMXB4OwoJCW92ZXJmbG93OiBoaWRkZW47CgkJY2xpcDogcmVjdCgwLCAwLCAwLCAwKTsKCQl3aGl0ZS1zcGFjZTogbm93cmFwOwoJCWJvcmRlcjogMDsKCX0KCgkuc2VhcmNoLWNvbnRhaW5lciB7CgkJcG9zaXRpb246IHJlbGF0aXZlOwoJCXdpZHRoOiAxMDAlOwoJCW1heC13aWR0aDogMzJyZW07Cgl9CgoJLnNlYXJjaC1pbnB1dC13cmFwcGVyIHsKCQlwb3NpdGlvbjogcmVsYXRpdmU7CgkJZGlzcGxheTogZmxleDsKCQlhbGlnbi1pdGVtczogY2VudGVyOwoJfQoKCWlucHV0W3R5cGU9J3NlYXJjaCddIHsKCQl3aWR0aDogMTAwJTsKCQlwYWRkaW5nOiAwLjYyNXJlbSAyLjVyZW0gMC42MjVyZW0gMC43NXJlbTsKCQlmb250LXNpemU6IDFyZW07CgkJbGluZS1oZWlnaHQ6IDEuNTsKCQlib3JkZXI6IDJweCBzb2xpZCAjNmI3MjgwOwoJCWJvcmRlci1yYWRpdXM6IDAuNXJlbTsKCQliYWNrZ3JvdW5kOiAjZmZmOwoJCWNvbG9yOiAjMTExODI3OwoJCW91dGxpbmU6IG5vbmU7Cgl9CgoJaW5wdXRbdHlwZT0nc2VhcmNoJ106Zm9jdXMgewoJCWJvcmRlci1jb2xvcjogIzI1NjNlYjsKCQlib3gtc2hhZG93OiAwIDAgMCAzcHggcmdiYSgzNywgOTksIDIzNSwgMC4yNSk7Cgl9CgoJLnNlYXJjaC1zcGlubmVyIHsKCQlwb3NpdGlvbjogYWJzb2x1dGU7CgkJcmlnaHQ6IDAuNzVyZW07CgkJd2lkdGg6IDEuMjVyZW07CgkJaGVpZ2h0OiAxLjI1cmVtOwoJCWJvcmRlcjogMnB4IHNvbGlkICNkMWQ1ZGI7CgkJYm9yZGVyLXRvcC1jb2xvcjogIzI1NjNlYjsKCQlib3JkZXItcmFkaXVzOiA1MCU7CgkJYW5pbWF0aW9uOiBzcGluIDAuNnMgbGluZWFyIGluZmluaXRlOwoJfQoKCUBrZXlmcmFtZXMgc3BpbiB7CgkJdG8gewoJCQl0cmFuc2Zvcm06IHJvdGF0ZSgzNjBkZWcpOwoJCX0KCX0KCgl1bCB7CgkJcG9zaXRpb246IGFic29sdXRlOwoJCXRvcDogMTAwJTsKCQlsZWZ0OiAwOwoJCXJpZ2h0OiAwOwoJCW1hcmdpbjogMC4yNXJlbSAwIDA7CgkJcGFkZGluZzogMC4yNXJlbSAwOwoJCWxpc3Qtc3R5bGU6IG5vbmU7CgkJYmFja2dyb3VuZDogI2ZmZjsKCQlib3JkZXI6IDJweCBzb2xpZCAjZDFkNWRiOwoJCWJvcmRlci1yYWRpdXM6IDAuNXJlbTsKCQlib3gtc2hhZG93OiAwIDRweCAxMnB4IHJnYmEoMCwgMCwgMCwgMC4xKTsKCQltYXgtaGVpZ2h0OiAyMHJlbTsKCQlvdmVyZmxvdy15OiBhdXRvOwoJCXotaW5kZXg6IDUwOwoJfQoKCWxpIHsKCQlkaXNwbGF5OiBmbGV4OwoJCWZsZXgtZGlyZWN0aW9uOiBjb2x1bW47CgkJZ2FwOiAwLjEyNXJlbTsKCQlwYWRkaW5nOiAwLjVyZW0gMC43NXJlbTsKCQljdXJzb3I6IHBvaW50ZXI7Cgl9CgoJbGlbYXJpYS1zZWxlY3RlZD0ndHJ1ZSddIHsKCQliYWNrZ3JvdW5kOiAjZWZmNmZmOwoJCW91dGxpbmU6IDJweCBzb2xpZCAjMjU2M2ViOwoJCW91dGxpbmUtb2Zmc2V0OiAtMnB4OwoJfQoKCS5yZXN1bHQtdGl0bGUgewoJCWZvbnQtd2VpZ2h0OiA2MDA7CgkJY29sb3I6ICMxMTE4Mjc7Cgl9CgoJLnJlc3VsdC1kZXNjcmlwdGlvbiB7CgkJZm9udC1zaXplOiAwLjg3NXJlbTsKCQljb2xvcjogIzZiNzI4MDsKCX0KCglAbWVkaWEgKHByZWZlcnMtcmVkdWNlZC1tb3Rpb246IHJlZHVjZSkgewoJCS5zZWFyY2gtc3Bpbm5lciB7CgkJCWFuaW1hdGlvbi1kdXJhdGlvbjogMC4wMW1zICFpbXBvcnRhbnQ7CgkJCWFuaW1hdGlvbi1pdGVyYXRpb24tY291bnQ6IDEgIWltcG9ydGFudDsKCQl9Cgl9Cjwvc3R5bGU+Cg=="}, {"name": "search.remote.ts", "type": "text", "content": "import { query } from '$app/server';\nimport { db } from '$lib/server/db';\n\nexport interface SearchResult {\n\tid: string;\n\ttitle: string;\n\tdescription: string;\n\turl: string;\n}\n\nexport const search = query(async (term: string): Promise<SearchResult[]> => {\n\tconst trimmed = term.trim();\n\tif (!trimmed || trimmed.length < 2) return [];\n\n\tconst results = await db.items.findMany({\n\t\twhere: {\n\t\t\tOR: [\n\t\t\t\t{ title: { contains: trimmed, mode: 'insensitive' } },\n\t\t\t\t{ description: { contains: trimmed, mode: 'insensitive' } }\n\t\t\t]\n\t\t},\n\t\ttake: 20,\n\t\tselect: { id: true, title: true, description: true, url: true }\n\t});\n\n\treturn results;\n});\n"}], "grading": {"expectations": [{"text": "Has a .remote.ts file using query() from '$app/server'", "passed": true, "evidence": "import { query } from '$app/server'; in search.remote.ts"}, {"text": "Uses $effect with setTimeout+cleanup for debouncing", "passed": true, "evidence": "$effect(() => { ... const timeout = setTimeout(async () => { ... }, 300); return () => { clearTimeout(timeout); }; });"}, {"text": "Has aria-live region for announcing results", "passed": true, "evidence": "<div aria-live=\"polite\" aria-atomic=\"true\" class=\"sr-only\">{announcement}</div>"}, {"text": "Uses aria-busy attribute on loading state", "passed": true, "evidence": "aria-busy={loading} on the search input"}, {"text": "Has keyboard navigation (ArrowDown/ArrowUp) for results", "passed": true, "evidence": "case 'ArrowDown': and case 'ArrowUp': in handleKeydown"}, {"text": "Has a labeled search input (label element or aria-label)", "passed": true, "evidence": "<label for=\"search-input\" class=\"sr-only\">Search</label>"}, {"text": "Uses Svelte 5 syntax ($state, $derived, $effect, $props)", "passed": true, "evidence": "Uses $state for multiple variables and $effect for debouncing (Svelte 5 runes syntax)"}]}}, {"id": "eval-3-accessible-search-without_skill", "prompt": "Create an accessible search component that uses SvelteKit remote functions to query the server. It should debounce input, show loading state with aria-busy, announce results to screen readers with a live region, and support keyboard navigation through results.", "eval_id": 3, "outputs": [{"name": "AccessibleSearch.svelte", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,PHNjcmlwdCBsYW5nPSJ0cyI+CglpbXBvcnQgeyBzZWFyY2gsIHR5cGUgU2VhcmNoUmVzdWx0IH0gZnJvbSAnLi9zZWFyY2gucmVtb3RlJzsKCglsZXQgc2VhcmNoVGVybSA9ICRzdGF0ZSgnJyk7CglsZXQgcmVzdWx0cyA9ICRzdGF0ZTxTZWFyY2hSZXN1bHRbXT4oW10pOwoJbGV0IGxvYWRpbmcgPSAkc3RhdGUoZmFsc2UpOwoJbGV0IGFjdGl2ZUluZGV4ID0gJHN0YXRlKC0xKTsKCWxldCBhbm5vdW5jZW1lbnQgPSAkc3RhdGUoJycpOwoJbGV0IGxpc3Rib3hPcGVuID0gJHN0YXRlKGZhbHNlKTsKCWxldCBkZWJvdW5jZVRpbWVyOiBSZXR1cm5UeXBlPHR5cGVvZiBzZXRUaW1lb3V0PiB8IHVuZGVmaW5lZDsKCWxldCBpbnB1dEVsOiBIVE1MSW5wdXRFbGVtZW50IHwgdW5kZWZpbmVkOwoKCWNvbnN0IGxpc3Rib3hJZCA9ICdzZWFyY2gtbGlzdGJveCc7CgoJZnVuY3Rpb24gZGVib3VuY2UoZm46ICgpID0+IHZvaWQsIG1zOiBudW1iZXIpIHsKCQljbGVhclRpbWVvdXQoZGVib3VuY2VUaW1lcik7CgkJZGVib3VuY2VUaW1lciA9IHNldFRpbWVvdXQoZm4sIG1zKTsKCX0KCglhc3luYyBmdW5jdGlvbiBwZXJmb3JtU2VhcmNoKHRlcm06IHN0cmluZykgewoJCWlmICghdGVybS50cmltKCkpIHsKCQkJcmVzdWx0cyA9IFtdOwoJCQlsaXN0Ym94T3BlbiA9IGZhbHNlOwoJCQlhbm5vdW5jZW1lbnQgPSAnJzsKCQkJbG9hZGluZyA9IGZhbHNlOwoJCQlyZXR1cm47CgkJfQoKCQlsb2FkaW5nID0gdHJ1ZTsKCQlhbm5vdW5jZW1lbnQgPSAnU2VhcmNoaW5nLi4uJzsKCgkJdHJ5IHsKCQkJcmVzdWx0cyA9IGF3YWl0IHNlYXJjaCh0ZXJtKTsKCQkJbGlzdGJveE9wZW4gPSByZXN1bHRzLmxlbmd0aCA+IDA7CgkJCWFjdGl2ZUluZGV4ID0gLTE7CgoJCQlpZiAocmVzdWx0cy5sZW5ndGggPT09IDApIHsKCQkJCWFubm91bmNlbWVudCA9IGBObyByZXN1bHRzIGZvdW5kIGZvciAiJHt0ZXJtfSIuYDsKCQkJfSBlbHNlIGlmIChyZXN1bHRzLmxlbmd0aCA9PT0gMSkgewoJCQkJYW5ub3VuY2VtZW50ID0gYDEgcmVzdWx0IGZvdW5kIGZvciAiJHt0ZXJtfSIuYDsKCQkJfSBlbHNlIHsKCQkJCWFubm91bmNlbWVudCA9IGAke3Jlc3VsdHMubGVuZ3RofSByZXN1bHRzIGZvdW5kIGZvciAiJHt0ZXJtfSIuYDsKCQkJfQoJCX0gY2F0Y2ggewoJCQlyZXN1bHRzID0gW107CgkJCWxpc3Rib3hPcGVuID0gZmFsc2U7CgkJCWFubm91bmNlbWVudCA9ICdTZWFyY2ggZmFpbGVkLiBQbGVhc2UgdHJ5IGFnYWluLic7CgkJfSBmaW5hbGx5IHsKCQkJbG9hZGluZyA9IGZhbHNlOwoJCX0KCX0KCglmdW5jdGlvbiBoYW5kbGVJbnB1dCgpIHsKCQlkZWJvdW5jZSgoKSA9PiBwZXJmb3JtU2VhcmNoKHNlYXJjaFRlcm0pLCAzMDApOwoJfQoKCWZ1bmN0aW9uIGhhbmRsZUtleWRvd24oZXZlbnQ6IEtleWJvYXJkRXZlbnQpIHsKCQlpZiAoIWxpc3Rib3hPcGVuKSByZXR1cm47CgoJCXN3aXRjaCAoZXZlbnQua2V5KSB7CgkJCWNhc2UgJ0Fycm93RG93bic6IHsKCQkJCWV2ZW50LnByZXZlbnREZWZhdWx0KCk7CgkJCQlhY3RpdmVJbmRleCA9IGFjdGl2ZUluZGV4IDwgcmVzdWx0cy5sZW5ndGggLSAxID8gYWN0aXZlSW5kZXggKyAxIDogMDsKCQkJCWJyZWFrOwoJCQl9CgkJCWNhc2UgJ0Fycm93VXAnOiB7CgkJCQlldmVudC5wcmV2ZW50RGVmYXVsdCgpOwoJCQkJYWN0aXZlSW5kZXggPSBhY3RpdmVJbmRleCA+IDAgPyBhY3RpdmVJbmRleCAtIDEgOiByZXN1bHRzLmxlbmd0aCAtIDE7CgkJCQlicmVhazsKCQkJfQoJCQljYXNlICdFbnRlcic6IHsKCQkJCWV2ZW50LnByZXZlbnREZWZhdWx0KCk7CgkJCQlpZiAoYWN0aXZlSW5kZXggPj0gMCAmJiBhY3RpdmVJbmRleCA8IHJlc3VsdHMubGVuZ3RoKSB7CgkJCQkJc2VsZWN0UmVzdWx0KHJlc3VsdHNbYWN0aXZlSW5kZXhdKTsKCQkJCX0KCQkJCWJyZWFrOwoJCQl9CgkJCWNhc2UgJ0VzY2FwZSc6IHsKCQkJCWV2ZW50LnByZXZlbnREZWZhdWx0KCk7CgkJCQlsaXN0Ym94T3BlbiA9IGZhbHNlOwoJCQkJYWN0aXZlSW5kZXggPSAtMTsKCQkJCWlucHV0RWw/LmZvY3VzKCk7CgkJCQlicmVhazsKCQkJfQoJCQljYXNlICdIb21lJzogewoJCQkJaWYgKGxpc3Rib3hPcGVuICYmIHJlc3VsdHMubGVuZ3RoID4gMCkgewoJCQkJCWV2ZW50LnByZXZlbnREZWZhdWx0KCk7CgkJCQkJYWN0aXZlSW5kZXggPSAwOwoJCQkJfQoJCQkJYnJlYWs7CgkJCX0KCQkJY2FzZSAnRW5kJzogewoJCQkJaWYgKGxpc3Rib3hPcGVuICYmIHJlc3VsdHMubGVuZ3RoID4gMCkgewoJCQkJCWV2ZW50LnByZXZlbnREZWZhdWx0KCk7CgkJCQkJYWN0aXZlSW5kZXggPSByZXN1bHRzLmxlbmd0aCAtIDE7CgkJCQl9CgkJCQlicmVhazsKCQkJfQoJCX0KCX0KCglmdW5jdGlvbiBzZWxlY3RSZXN1bHQocmVzdWx0OiBTZWFyY2hSZXN1bHQpIHsKCQlzZWFyY2hUZXJtID0gcmVzdWx0LnRpdGxlOwoJCWxpc3Rib3hPcGVuID0gZmFsc2U7CgkJYWN0aXZlSW5kZXggPSAtMTsKCQlhbm5vdW5jZW1lbnQgPSBgU2VsZWN0ZWQ6ICR7cmVzdWx0LnRpdGxlfWA7CgkJLy8gTmF2aWdhdGUgb3IgaGFuZGxlIHNlbGVjdGlvbgoJCXdpbmRvdy5sb2NhdGlvbi5ocmVmID0gcmVzdWx0LnVybDsKCX0KCglmdW5jdGlvbiBoYW5kbGVCbHVyKGV2ZW50OiBGb2N1c0V2ZW50KSB7CgkJY29uc3QgcmVsYXRlZFRhcmdldCA9IGV2ZW50LnJlbGF0ZWRUYXJnZXQgYXMgSFRNTEVsZW1lbnQgfCBudWxsOwoJCWlmICghcmVsYXRlZFRhcmdldD8uY2xvc2VzdCgnW3JvbGU9Imxpc3Rib3giXScpKSB7CgkJCS8vIERlbGF5IGNsb3Npbmcgc28gY2xpY2sgb24gcmVzdWx0IGNhbiByZWdpc3RlcgoJCQlzZXRUaW1lb3V0KCgpID0+IHsKCQkJCWxpc3Rib3hPcGVuID0gZmFsc2U7CgkJCQlhY3RpdmVJbmRleCA9IC0xOwoJCQl9LCAxNTApOwoJCX0KCX0KCglsZXQgYWN0aXZlRGVzY2VuZGFudElkID0gJGRlcml2ZWQoCgkJYWN0aXZlSW5kZXggPj0gMCA/IGBzZWFyY2gtb3B0aW9uLSR7cmVzdWx0c1thY3RpdmVJbmRleF0/LmlkfWAgOiB1bmRlZmluZWQKCSk7Cjwvc2NyaXB0PgoKPGRpdiBjbGFzcz0ic2VhcmNoLXdyYXBwZXIiPgoJPGxhYmVsIGZvcj0ic2VhcmNoLWlucHV0IiBjbGFzcz0ic2VhcmNoLWxhYmVsIj5TZWFyY2g8L2xhYmVsPgoKCTxkaXYgY2xhc3M9InNlYXJjaC1pbnB1dC13cmFwcGVyIj4KCQk8aW5wdXQKCQkJYmluZDp0aGlzPXtpbnB1dEVsfQoJCQliaW5kOnZhbHVlPXtzZWFyY2hUZXJtfQoJCQlvbmlucHV0PXtoYW5kbGVJbnB1dH0KCQkJb25rZXlkb3duPXtoYW5kbGVLZXlkb3dufQoJCQlvbmJsdXI9e2hhbmRsZUJsdXJ9CgkJCWlkPSJzZWFyY2gtaW5wdXQiCgkJCXR5cGU9InNlYXJjaCIKCQkJcm9sZT0iY29tYm9ib3giCgkJCWFyaWEtZXhwYW5kZWQ9e2xpc3Rib3hPcGVufQoJCQlhcmlhLWNvbnRyb2xzPXtsaXN0Ym94SWR9CgkJCWFyaWEtYWN0aXZlZGVzY2VuZGFudD17YWN0aXZlRGVzY2VuZGFudElkfQoJCQlhcmlhLWF1dG9jb21wbGV0ZT0ibGlzdCIKCQkJYXJpYS1idXN5PXtsb2FkaW5nfQoJCQlhcmlhLWRlc2NyaWJlZGJ5PSJzZWFyY2gtaGVscCIKCQkJYXV0b2NvbXBsZXRlPSJvZmYiCgkJCXBsYWNlaG9sZGVyPSJTZWFyY2guLi4iCgkJLz4KCQl7I2lmIGxvYWRpbmd9CgkJCTxzcGFuIGNsYXNzPSJsb2FkaW5nLWluZGljYXRvciIgYXJpYS1oaWRkZW49InRydWUiPjwvc3Bhbj4KCQl7L2lmfQoJPC9kaXY+CgoJPHNwYW4gaWQ9InNlYXJjaC1oZWxwIiBjbGFzcz0idmlzdWFsbHktaGlkZGVuIj4KCQlUeXBlIHRvIHNlYXJjaC4gVXNlIGFycm93IGtleXMgdG8gbmF2aWdhdGUgcmVzdWx0cywgRW50ZXIgdG8gc2VsZWN0LCBFc2NhcGUgdG8gY2xvc2UuCgk8L3NwYW4+CgoJeyNpZiBsaXN0Ym94T3Blbn0KCQk8dWwKCQkJaWQ9e2xpc3Rib3hJZH0KCQkJcm9sZT0ibGlzdGJveCIKCQkJYXJpYS1sYWJlbD0iU2VhcmNoIHJlc3VsdHMiCgkJPgoJCQl7I2VhY2ggcmVzdWx0cyBhcyByZXN1bHQsIGkgKHJlc3VsdC5pZCl9CgkJCQl7QGNvbnN0IGlzQWN0aXZlID0gaSA9PT0gYWN0aXZlSW5kZXh9CgkJCQk8bGkKCQkJCQlpZD0ic2VhcmNoLW9wdGlvbi17cmVzdWx0LmlkfSIKCQkJCQlyb2xlPSJvcHRpb24iCgkJCQkJYXJpYS1zZWxlY3RlZD17aXNBY3RpdmV9CgkJCQkJY2xhc3M6YWN0aXZlPXtpc0FjdGl2ZX0KCQkJCQlvbm1vdXNlZW50ZXI9eygpID0+IChhY3RpdmVJbmRleCA9IGkpfQoJCQkJCW9uY2xpY2s9eygpID0+IHNlbGVjdFJlc3VsdChyZXN1bHQpfQoJCQkJPgoJCQkJCTxzcGFuIGNsYXNzPSJyZXN1bHQtdGl0bGUiPntyZXN1bHQudGl0bGV9PC9zcGFuPgoJCQkJCTxzcGFuIGNsYXNzPSJyZXN1bHQtZGVzY3JpcHRpb24iPntyZXN1bHQuZGVzY3JpcHRpb259PC9zcGFuPgoJCQkJPC9saT4KCQkJey9lYWNofQoJCTwvdWw+Cgl7L2lmfQoKCTwhLS0gTGl2ZSByZWdpb24gZm9yIHNjcmVlbiByZWFkZXIgYW5ub3VuY2VtZW50cyAtLT4KCTxkaXYKCQlhcmlhLWxpdmU9InBvbGl0ZSIKCQlhcmlhLWF0b21pYz0idHJ1ZSIKCQljbGFzcz0idmlzdWFsbHktaGlkZGVuIgoJCXJvbGU9InN0YXR1cyIKCT4KCQl7YW5ub3VuY2VtZW50fQoJPC9kaXY+CjwvZGl2PgoKPHN0eWxlPgoJLnNlYXJjaC13cmFwcGVyIHsKCQlwb3NpdGlvbjogcmVsYXRpdmU7CgkJbWF4LXdpZHRoOiAzMnJlbTsKCQl3aWR0aDogMTAwJTsKCX0KCgkuc2VhcmNoLWxhYmVsIHsKCQlkaXNwbGF5OiBibG9jazsKCQlmb250LXdlaWdodDogNjAwOwoJCW1hcmdpbi1ibG9jay1lbmQ6IDAuMjVyZW07CgkJZm9udC1zaXplOiAwLjg3NXJlbTsKCX0KCgkuc2VhcmNoLWlucHV0LXdyYXBwZXIgewoJCXBvc2l0aW9uOiByZWxhdGl2ZTsKCQlkaXNwbGF5OiBmbGV4OwoJCWFsaWduLWl0ZW1zOiBjZW50ZXI7Cgl9CgoJaW5wdXRbdHlwZT0nc2VhcmNoJ10gewoJCXdpZHRoOiAxMDAlOwoJCXBhZGRpbmc6IDAuNXJlbSAwLjc1cmVtOwoJCXBhZGRpbmctaW5saW5lLWVuZDogMnJlbTsKCQlib3JkZXI6IDFweCBzb2xpZCAjZDFkNWRiOwoJCWJvcmRlci1yYWRpdXM6IDAuMzc1cmVtOwoJCWZvbnQtc2l6ZTogMXJlbTsKCQlsaW5lLWhlaWdodDogMS41OwoJCW91dGxpbmU6IG5vbmU7CgkJdHJhbnNpdGlvbjogYm9yZGVyLWNvbG9yIDAuMTVzOwoJfQoKCWlucHV0W3R5cGU9J3NlYXJjaCddOmZvY3VzIHsKCQlib3JkZXItY29sb3I6ICMyNTYzZWI7CgkJYm94LXNoYWRvdzogMCAwIDAgMnB4IHJnYmEoMzcsIDk5LCAyMzUsIDAuMjUpOwoJfQoKCS5sb2FkaW5nLWluZGljYXRvciB7CgkJcG9zaXRpb246IGFic29sdXRlOwoJCWluc2V0LWlubGluZS1lbmQ6IDAuNXJlbTsKCQl3aWR0aDogMXJlbTsKCQloZWlnaHQ6IDFyZW07CgkJYm9yZGVyOiAycHggc29saWQgI2QxZDVkYjsKCQlib3JkZXItdG9wLWNvbG9yOiAjMjU2M2ViOwoJCWJvcmRlci1yYWRpdXM6IDUwJTsKCQlhbmltYXRpb246IHNwaW4gMC42cyBsaW5lYXIgaW5maW5pdGU7Cgl9CgoJQGtleWZyYW1lcyBzcGluIHsKCQl0byB7CgkJCXRyYW5zZm9ybTogcm90YXRlKDM2MGRlZyk7CgkJfQoJfQoKCXVsW3JvbGU9J2xpc3Rib3gnXSB7CgkJcG9zaXRpb246IGFic29sdXRlOwoJCXotaW5kZXg6IDEwOwoJCXdpZHRoOiAxMDAlOwoJCW1hcmdpbi1ibG9jay1zdGFydDogMC4yNXJlbTsKCQlwYWRkaW5nOiAwLjI1cmVtIDA7CgkJbGlzdC1zdHlsZTogbm9uZTsKCQliYWNrZ3JvdW5kOiB3aGl0ZTsKCQlib3JkZXI6IDFweCBzb2xpZCAjZDFkNWRiOwoJCWJvcmRlci1yYWRpdXM6IDAuMzc1cmVtOwoJCWJveC1zaGFkb3c6IDAgNHB4IDEycHggcmdiYSgwLCAwLCAwLCAwLjEpOwoJCW1heC1oZWlnaHQ6IDIwcmVtOwoJCW92ZXJmbG93LXk6IGF1dG87Cgl9CgoJbGlbcm9sZT0nb3B0aW9uJ10gewoJCWRpc3BsYXk6IGZsZXg7CgkJZmxleC1kaXJlY3Rpb246IGNvbHVtbjsKCQlnYXA6IDAuMTI1cmVtOwoJCXBhZGRpbmc6IDAuNXJlbSAwLjc1cmVtOwoJCWN1cnNvcjogcG9pbnRlcjsKCX0KCglsaVtyb2xlPSdvcHRpb24nXTpob3ZlciwKCWxpW3JvbGU9J29wdGlvbiddLmFjdGl2ZSB7CgkJYmFja2dyb3VuZDogI2VmZjZmZjsKCX0KCglsaVtyb2xlPSdvcHRpb24nXS5hY3RpdmUgewoJCW91dGxpbmU6IDJweCBzb2xpZCAjMjU2M2ViOwoJCW91dGxpbmUtb2Zmc2V0OiAtMnB4OwoJfQoKCS5yZXN1bHQtdGl0bGUgewoJCWZvbnQtd2VpZ2h0OiA1MDA7CgkJY29sb3I6ICMxMTE4Mjc7Cgl9CgoJLnJlc3VsdC1kZXNjcmlwdGlvbiB7CgkJZm9udC1zaXplOiAwLjg3NXJlbTsKCQljb2xvcjogIzZiNzI4MDsKCX0KCgkudmlzdWFsbHktaGlkZGVuIHsKCQlwb3NpdGlvbjogYWJzb2x1dGU7CgkJd2lkdGg6IDFweDsKCQloZWlnaHQ6IDFweDsKCQlwYWRkaW5nOiAwOwoJCW1hcmdpbjogLTFweDsKCQlvdmVyZmxvdzogaGlkZGVuOwoJCWNsaXA6IHJlY3QoMCwgMCwgMCwgMCk7CgkJd2hpdGUtc3BhY2U6IG5vd3JhcDsKCQlib3JkZXItd2lkdGg6IDA7Cgl9Cjwvc3R5bGU+Cg=="}, {"name": "search.remote.ts", "type": "text", "content": "import { query } from '$lib/server/remote';\n\nexport interface SearchResult {\n\tid: string;\n\ttitle: string;\n\tdescription: string;\n\turl: string;\n}\n\nexport const search = query(async (term: string): Promise<SearchResult[]> => {\n\tif (!term.trim()) {\n\t\treturn [];\n\t}\n\n\t// Simulate server-side search (replace with real DB/API call)\n\tconst allItems: SearchResult[] = [\n\t\t{ id: '1', title: 'Getting Started Guide', description: 'Learn the basics of the platform', url: '/docs/getting-started' },\n\t\t{ id: '2', title: 'API Reference', description: 'Complete API documentation', url: '/docs/api' },\n\t\t{ id: '3', title: 'Component Library', description: 'Browse available UI components', url: '/docs/components' },\n\t\t{ id: '4', title: 'Configuration Options', description: 'Configure your application settings', url: '/docs/config' },\n\t\t{ id: '5', title: 'Deployment Guide', description: 'Deploy your app to production', url: '/docs/deployment' },\n\t];\n\n\tconst normalized = term.toLowerCase();\n\treturn allItems.filter(\n\t\t(item) =>\n\t\t\titem.title.toLowerCase().includes(normalized) ||\n\t\t\titem.description.toLowerCase().includes(normalized)\n\t);\n});\n"}], "grading": {"expectations": [{"text": "Has a .remote.ts file using query() from '$app/server'", "passed": false, "evidence": "Imports from '$lib/server/remote' instead of '$app/server'"}, {"text": "Uses $effect with setTimeout+cleanup for debouncing", "passed": false, "evidence": "Uses a manual debounce() helper function called from handleInput, not $effect with setTimeout+cleanup"}, {"text": "Has aria-live region for announcing results", "passed": true, "evidence": "<div aria-live=\"polite\" aria-atomic=\"true\" class=\"visually-hidden\" role=\"status\">{announcement}</div>"}, {"text": "Uses aria-busy attribute on loading state", "passed": true, "evidence": "aria-busy={loading} on the search input"}, {"text": "Has keyboard navigation (ArrowDown/ArrowUp) for results", "passed": true, "evidence": "case 'ArrowDown': and case 'ArrowUp': in handleKeydown"}, {"text": "Has a labeled search input (label element or aria-label)", "passed": true, "evidence": "<label for=\"search-input\" class=\"search-label\">Search</label>"}, {"text": "Uses Svelte 5 syntax ($state, $derived, $effect, $props)", "passed": true, "evidence": "Uses $state for multiple variables and $derived for activeDescendantId"}]}}], "previous_feedback": {}, "previous_outputs": {}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

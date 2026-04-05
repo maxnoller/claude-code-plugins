@@ -1,0 +1,14 @@
+{
+  "eval_id": 3,
+  "eval_name": "accessible-search-remote-functions",
+  "prompt": "Create an accessible search component that uses SvelteKit remote functions to query the server. It should debounce input, show loading state with aria-busy, announce results to screen readers with a live region, and support keyboard navigation through results.",
+  "assertions": [
+    { "text": "Has a .remote.ts file using query() from '$app/server'", "type": "code_pattern" },
+    { "text": "Uses $effect with setTimeout+cleanup for debouncing", "type": "code_pattern" },
+    { "text": "Has aria-live region for announcing results", "type": "code_pattern" },
+    { "text": "Uses aria-busy attribute on loading state", "type": "code_pattern" },
+    { "text": "Has keyboard navigation (ArrowDown/ArrowUp) for results", "type": "code_pattern" },
+    { "text": "Has a labeled search input (label element or aria-label)", "type": "code_pattern" },
+    { "text": "Uses Svelte 5 syntax ($state, $derived, $effect, $props)", "type": "code_pattern" }
+  ]
+}

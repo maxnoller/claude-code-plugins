@@ -1,0 +1,23 @@
+{
+  "skill_name": "svelte-5",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Build me a todo list component in Svelte 5. I want $state for the todos array, $derived to compute how many are left, and I want to use snippets so the consumer can customize how each row renders. Include a text input to add new todos and a toggle for each one.",
+      "expected_output": "A Svelte 5 component using $state, $derived, snippets with parameters, and proper event handling (onclick not on:click)",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I need a SvelteKit page that loads a list of blog posts from a database in +page.server.ts, has form actions for creating and deleting posts, and uses progressive enhancement. Also write a test for the load function.",
+      "expected_output": "A +page.server.ts with typed load function and named form actions, a +page.svelte with use:enhance, and a .test.ts file using vitest for the load function",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Create an accessible search component that uses SvelteKit remote functions to query the server. It should debounce input, show loading state with aria-busy, announce results to screen readers with a live region, and support keyboard navigation through results.",
+      "expected_output": "A .remote.ts file with query(), a .svelte component with debounced $effect, ARIA attributes (live region, aria-busy, roles), and keyboard handlers",
+      "files": []
+    }
+  ]
+}

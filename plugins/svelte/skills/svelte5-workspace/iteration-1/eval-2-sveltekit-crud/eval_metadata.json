@@ -1,0 +1,14 @@
+{
+  "eval_id": 2,
+  "eval_name": "sveltekit-crud-with-tests",
+  "prompt": "I need a SvelteKit page that loads a list of blog posts from a database in +page.server.ts, has form actions for creating and deleting posts, and uses progressive enhancement. Also write a test for the load function.",
+  "assertions": [
+    { "text": "Has a +page.server.ts with a typed load function (PageServerLoad)", "type": "code_pattern" },
+    { "text": "Has named form actions (e.g. create, delete) in the actions export", "type": "code_pattern" },
+    { "text": "Uses fail() from @sveltejs/kit for validation errors", "type": "code_pattern" },
+    { "text": "Has a +page.svelte that uses use:enhance for progressive enhancement", "type": "code_pattern" },
+    { "text": "Uses Svelte 5 syntax ($props, onclick) not Svelte 4 (export let, on:click)", "type": "code_pattern" },
+    { "text": "Test file imports from vitest and tests the load function", "type": "code_pattern" },
+    { "text": "Test file uses .test.ts extension (not .svelte.test.ts) for server-side code", "type": "code_pattern" }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "expectations": [
+    { "text": "Uses $state() for the todos array", "passed": true, "evidence": "let todos = $state<Todo[]>([]);" },
+    { "text": "Uses $derived() or $derived.by() to compute remaining/incomplete count", "passed": true, "evidence": "let remaining = $derived(todos.filter((t) => !t.done).length);" },
+    { "text": "Defines or accepts a Snippet type (imports from 'svelte')", "passed": true, "evidence": "import type { Snippet } from 'svelte';" },
+    { "text": "Uses {@render ...} syntax for snippet rendering (not <slot>)", "passed": true, "evidence": "{@render row(todo, toggle)}" },
+    { "text": "Uses onclick handler (not on:click Svelte 4 syntax)", "passed": true, "evidence": "onclick={addTodo} and onkeydown={handleKeydown}" },
+    { "text": "Includes a text input for adding new todos", "passed": true, "evidence": "<input id=\"new-todo\" type=\"text\" placeholder=\"What needs to be done?\" bind:value={newText} />" },
+    { "text": "Has a toggle mechanism (checkbox or button) per todo", "passed": true, "evidence": "<input type=\"checkbox\" checked={todo.done} onchange={() => toggle(todo.id)} />" }
+  ]
+}

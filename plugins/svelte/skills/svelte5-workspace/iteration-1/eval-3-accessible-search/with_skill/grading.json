@@ -1,0 +1,11 @@
+{
+  "expectations": [
+    { "text": "Has a .remote.ts file using query() from '$app/server'", "passed": true, "evidence": "import { query } from '$app/server'; in search.remote.ts" },
+    { "text": "Uses $effect with setTimeout+cleanup for debouncing", "passed": true, "evidence": "$effect(() => { ... const timeout = setTimeout(async () => { ... }, 300); return () => { clearTimeout(timeout); }; });" },
+    { "text": "Has aria-live region for announcing results", "passed": true, "evidence": "<div aria-live=\"polite\" aria-atomic=\"true\" class=\"sr-only\">{announcement}</div>" },
+    { "text": "Uses aria-busy attribute on loading state", "passed": true, "evidence": "aria-busy={loading} on the search input" },
+    { "text": "Has keyboard navigation (ArrowDown/ArrowUp) for results", "passed": true, "evidence": "case 'ArrowDown': and case 'ArrowUp': in handleKeydown" },
+    { "text": "Has a labeled search input (label element or aria-label)", "passed": true, "evidence": "<label for=\"search-input\" class=\"sr-only\">Search</label>" },
+    { "text": "Uses Svelte 5 syntax ($state, $derived, $effect, $props)", "passed": true, "evidence": "Uses $state for multiple variables and $effect for debouncing (Svelte 5 runes syntax)" }
+  ]
+}
